@@ -1,0 +1,201 @@
+use std::path::PathBuf;
+
+use anyhow::Result;
+use clap::{Parser, Subcommand, ValueEnum};
+
+use crate::{doctor, local_query, output, store_probe};
+
+#[derive(Parser)]
+#[command(
+    name = "wecom-local",
+    version = env!("CARGO_PKG_VERSION"),
+    about = "Query locally visible WeCom Desktop data"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Check whether the local WeCom Desktop runtime can be reached.
+    Doctor {
+        /// Emit machine-readable JSON.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Inspect local WeCom database file capabilities without reading row values.
+    StoreProbe {
+        /// Emit machine-readable JSON. Store probe currently only supports JSON output.
+        #[arg(long)]
+        json: bool,
+    },
+    /// List locally visible WeCom conversations.
+    Conversations {
+        /// Filter conversations by id or display name.
+        #[arg(long)]
+        query: Option<String>,
+    },
+    /// Read messages from a WeCom conversation id or display-name query.
+    History {
+        /// WeCom conversation id or display-name query, for example R:0000000000 or "Example Group".
+        conversation: String,
+        /// Maximum messages to return. Use 0 for all available message ids.
+        #[arg(short = 'n', long, default_value = "50")]
+        limit: usize,
+        /// Message offset in the conversation message-id list.
+        #[arg(long, default_value = "0")]
+        offset: usize,
+        /// Output format.
+        #[arg(short = 'f', long, value_enum, default_value = "json")]
+        format: OutputFormat,
+    },
+    /// Search decoded messages in one WeCom conversation.
+    Search {
+        /// Keyword to search for in decoded message text and sender display fields.
+        query: String,
+        /// WeCom conversation id or display-name query to search in.
+        #[arg(long = "in")]
+        conversation: String,
+        /// Maximum matches to return. Use 0 for all matches in the scan window.
+        #[arg(short = 'n', long, default_value = "20")]
+        limit: usize,
+        /// Maximum recent messages to scan. Use 0 for all available message ids.
+        #[arg(long, default_value = "1000")]
+        max_scan: usize,
+        /// Emit JSON. Search currently only supports JSON output.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Summarize decoded messages in one WeCom conversation.
+    Stats {
+        /// WeCom conversation id or display-name query to summarize.
+        conversation: String,
+        /// Maximum recent messages to scan. Use 0 for all available message ids.
+        #[arg(long, default_value = "1000")]
+        max_scan: usize,
+        /// Include aggregate member participation counts without returning the member list.
+        #[arg(long)]
+        include_members: bool,
+        /// Emit JSON. Stats currently only supports JSON output.
+        #[arg(long)]
+        json: bool,
+    },
+    /// List members in a WeCom conversation.
+    Members {
+        /// WeCom conversation id or display-name query to inspect.
+        conversation: String,
+        /// Output format. Members currently supports JSON output.
+        #[arg(short = 'f', long, value_enum, default_value = "json")]
+        format: JsonOutputFormat,
+    },
+    /// Export messages from a WeCom conversation id or display-name query to a file.
+    Export {
+        /// WeCom conversation id or display-name query, for example R:0000000000 or "Example Group".
+        conversation: String,
+        /// Maximum messages to export. Use 0 for all available message ids.
+        #[arg(short = 'n', long, default_value = "0")]
+        limit: usize,
+        /// Message offset in the conversation message-id list.
+        #[arg(long, default_value = "0")]
+        offset: usize,
+        /// Output format.
+        #[arg(short = 'f', long, value_enum, default_value = "markdown")]
+        format: OutputFormat,
+        /// Output file path.
+        #[arg(short = 'o', long)]
+        output: PathBuf,
+    },
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum OutputFormat {
+    Json,
+    Markdown,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum JsonOutputFormat {
+    Json,
+}
+
+pub fn run() -> Result<()> {
+    let cli = Cli::parse();
+    match cli.command {
+        Commands::Doctor { json } => {
+            let report = doctor::run();
+            output::print_doctor_report(&report, json)
+        }
+        Commands::StoreProbe { json: _ } => {
+            let report = store_probe::run();
+            output::print_json(&serde_json::to_value(report)?)
+        }
+        Commands::Conversations { query } => {
+            let payload = local_query::discover_conversations(query.as_deref())?;
+            output::print_json(&payload)
+        }
+        Commands::History {
+            conversation,
+            limit,
+            offset,
+            format,
+        } => {
+            let payload = local_query::read_history(&conversation, limit, offset)?;
+            print_payload(&payload, format)
+        }
+        Commands::Search {
+            query,
+            conversation,
+            limit,
+            max_scan,
+            json: _,
+        } => {
+            let payload = local_query::search_messages(&conversation, &query, limit, max_scan)?;
+            output::print_json(&payload)
+        }
+        Commands::Stats {
+            conversation,
+            max_scan,
+            include_members,
+            json: _,
+        } => {
+            let payload =
+                local_query::conversation_stats(&conversation, max_scan, include_members)?;
+            output::print_json(&payload)
+        }
+        Commands::Members {
+            conversation,
+            format: _,
+        } => {
+            let payload = local_query::list_members(&conversation)?;
+            output::print_json(&payload)
+        }
+        Commands::Export {
+            conversation,
+            limit,
+            offset,
+            format,
+            output: path,
+        } => {
+            let payload = local_query::read_history(&conversation, limit, offset)?;
+            output::write_payload(&payload, output_format(format), &path)
+        }
+    }
+}
+
+fn print_payload(payload: &serde_json::Value, format: OutputFormat) -> Result<()> {
+    match format {
+        OutputFormat::Json => output::print_json(payload),
+        OutputFormat::Markdown => {
+            println!("{}", output::to_markdown(payload));
+            Ok(())
+        }
+    }
+}
+
+fn output_format(format: OutputFormat) -> output::Format {
+    match format {
+        OutputFormat::Json => output::Format::Json,
+        OutputFormat::Markdown => output::Format::Markdown,
+    }
+}

@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a Local Query or release improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What local WeCom Desktop query workflow is blocked?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the command shape or JSON output shape if relevant.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Conversation Discovery
+        - Conversation Reference
+        - History
+        - Members
+        - Search
+        - Stats
+        - Local Store Probe
+        - Local Store Reader
+        - Agent Skill
+        - Release packaging
+        - Other
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety fit
+      options:
+        - label: The request can stay read-only.
+          required: true
+        - label: The request can be described without sharing private WeCom data.
+          required: true

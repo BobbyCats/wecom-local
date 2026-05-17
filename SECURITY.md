@@ -1,0 +1,49 @@
+# Security Policy
+
+## Supported Versions
+
+`wecom-local` is currently an experimental macOS prototype. Security and
+privacy fixes target the latest commit on `main` until versioned releases
+exist.
+
+## Reporting A Vulnerability
+
+Open a private GitHub security advisory when available, or contact the
+maintainer through GitHub. Do not include private WeCom data in the report.
+
+Safe report contents:
+
+- command name;
+- platform and WeCom Desktop version;
+- redacted error category;
+- expected behavior;
+- whether the issue affects read-only behavior, privacy redaction, or local
+  authorization.
+
+Do not include:
+
+- real chat history;
+- real conversation ids;
+- private group names;
+- contact names or profile fields;
+- screenshots of WeCom content;
+- raw encryption keys;
+- decrypted databases;
+- memory dumps;
+- full LLDB output.
+
+## Security Boundary
+
+`wecom-local` reads data that the signed-in macOS WeCom Desktop account can
+already view locally. It does not grant new WeCom permissions, send messages,
+or write back to WeCom Desktop.
+
+Runtime commands may need `sudo` because macOS controls process attachment
+through local authorization. The CLI must not store passwords, create askpass
+scripts, or install privileged helpers by default.
+
+## Local Store Research
+
+Local Store Reader work is experimental. Research must start with no-output
+proofs and must not print raw keys, write decrypted databases, or include real
+row values in logs, tests, docs, or issues.
