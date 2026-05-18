@@ -25,6 +25,33 @@
 JSON 只是机器接口。核心不是导出聊天记录，而是给 Agent 一条稳定、可恢复、失败
 可解释的本地查询路径。
 
+## 30 秒看懂
+
+你可以直接让 Agent 这样用：
+
+```text
+用 wc-brief 看 "Example Project" 最近 N 条消息。别写长报告，直接告诉我：
+这事到底卡在哪、谁该回复、下一句怎么问。
+```
+
+背后走的是本机只读查询：
+
+```bash
+wecom-local history "Example Project" -n 100 --format json
+wecom-local stats "Example Project" --max-scan 100 --include-members --json
+```
+
+上层 Agent 可以把结果整理成这种形状：
+
+```text
+- 卡点：上线时间没有确认，讨论一直在素材和审核之间来回绕。
+- 负责人：Alice 在等素材，Bob 说会补，但没有给具体时间。
+- 没说清楚：最终版本谁拍板、周五前能不能交，都还没有明确回答。
+- 下一句：@Bob 素材今天 18:00 前能补齐吗？如果不能，卡点是拍摄、审核还是排期？
+```
+
+上面都是 synthetic 示例，不对应任何真实会话。
+
 ## 为什么做这个
 
 微信已经有类似 `wx-cli` 的本地查询工具，可以把聊天记录交给本地脚本或 Agent 做
@@ -282,8 +309,8 @@ Bridge，也不会默认写导出文件。
 示例：
 
 ```text
-用 wc-brief 看 "Example Project" 最近 N 条消息。别写长报告，直接告诉我：
-这事到底卡在哪、谁该回复、下一句怎么问。
+用 wc-scan 看 "Example Project"、"Example Ops"、"Example Support" 最近 N 条消息。
+列出最活跃的群、没人回的问题、没收尾的事项。不要贴消息正文。
 ```
 
 ```text

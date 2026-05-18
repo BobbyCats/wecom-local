@@ -29,6 +29,37 @@ JSON is only the machine interface. The point is not exporting chat logs; it is
 giving agents a stable local query path with recoverable failures and clear
 privacy boundaries.
 
+## 30-Second Example
+
+Ask an agent like this:
+
+```text
+Use wc-brief on "Example Project" recent N messages. Keep it short: where is
+this stuck, who should reply, and what should I ask next?
+```
+
+Under the hood, it uses local read-only queries:
+
+```bash
+wecom-local history "Example Project" -n 100 --format json
+wecom-local stats "Example Project" --max-scan 100 --include-members --json
+```
+
+The agent can turn the result into something like:
+
+```text
+- Blocker: launch timing is still not confirmed; the chat keeps circling
+  between assets and review.
+- Owner: Alice is waiting for assets. Bob said he would add them, but did not
+  give a time.
+- Missing answer: who signs off the final version, and whether Friday is still
+  possible.
+- Next question: @Bob can you send the assets by 18:00 today? If not, is the
+  blocker shooting, review, or scheduling?
+```
+
+All names and content above are synthetic examples.
+
 ## Why This Exists
 
 Tools like `wx-cli` have made local WeChat history useful for search, review,
@@ -188,8 +219,9 @@ Runtime Bridge access and do not write exports by default.
 Example prompts:
 
 ```text
-Use wc-brief on "Example Project" recent N messages. Keep it short: where is
-this stuck, who should reply, and what should I ask next?
+Use wc-scan on "Example Project", "Example Ops", and "Example Support" recent N
+messages. List active chats, unanswered questions, and unfinished items. Do
+not paste message text.
 ```
 
 ```text
