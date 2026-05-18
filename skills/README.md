@@ -1,15 +1,14 @@
 # Agent Skills
 
-`wecom-local` keeps platform instructions thin. The Rust binary is the source
-of truth; skills only describe how an agent should call it safely.
+`wc-local` is the short Skill name for the `wecom-local` binary. The Rust
+binary is the source of truth; skills only describe how an agent should call it
+safely.
 
-Current skill targets:
+Data-query skill targets:
 
-- `codex/SKILL.md`
-- `claude/SKILL.md`
-- `hermes/SKILL.md`
-- `wc-local/SKILL.md`: short alias for the canonical `wecom-local` Skill. It
-  still calls the `wecom-local` binary.
+- `codex/SKILL.md`: Codex-facing `wc-local`.
+- `claude/SKILL.md`: Claude-facing `wc-local`.
+- `hermes/SKILL.md`: Hermes-facing `wc-local`.
 
 Short analysis skills:
 

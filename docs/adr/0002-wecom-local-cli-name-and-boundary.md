@@ -15,12 +15,18 @@ APIs and Bot workflows.
 ## Decision
 
 Use **WeCom Local CLI** as the public product name and `wecom-local` as the
-repository, binary, package, and Agent Skill name.
+repository, binary, and package name.
+
+Use `wc-local` as the short Agent Skill invocation name where short Skill names
+matter. The Skill still calls the `wecom-local` binary.
 
 ## Consequences
 
 - `local` carries the privacy and Desktop-runtime boundary.
 - `export` remains available but is not the project identity.
-- The command stays short enough for direct human and Agent use:
+- The CLI command remains explicit:
   `wecom-local conversations`, `wecom-local history`, and future local query
   commands.
+- Agent-facing Skill calls can stay short and consistent with the analysis
+  Skill family: `wc-local`, `wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and
+  `wc-draft`.

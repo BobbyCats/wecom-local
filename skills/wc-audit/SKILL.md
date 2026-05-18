@@ -1,11 +1,11 @@
 ---
 name: wc-audit
-description: Audit locally visible WeCom messages for unanswered questions, dropped follow-ups, vague commitments, missing owners, and missing deadlines.
+description: Audit locally visible WeCom messages for questions nobody answered, vague commitments, missing owners, and missing deadlines.
 ---
 
 # wc-audit
 
-Use this skill when the user wants to find what was asked, promised, or left
+Use this skill when the user wants to know what was asked, promised, or left
 hanging in a WeCom conversation.
 
 ## Workflow
@@ -34,7 +34,7 @@ hanging in a WeCom conversation.
    - short item title;
    - evidence time range;
    - current status;
-   - exact follow-up question to send.
+   - one follow-up line the user could send.
 
 ## Rules
 

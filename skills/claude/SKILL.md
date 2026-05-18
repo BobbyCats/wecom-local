@@ -1,12 +1,14 @@
 ---
-name: wecom-local
-description: Use the local wecom-local CLI to query locally visible WeCom Desktop data on macOS.
+name: wc-local
+description: Short Skill name for querying locally visible WeCom Desktop data through the wecom-local CLI on macOS.
 ---
 
-# wecom-local for Claude
+# wc-local for Claude
 
 Use this skill when a user asks to inspect, query, export, summarize, or analyze
 WeCom Desktop data that is locally visible to the signed-in macOS account.
+
+The Skill name is short. The binary is still `wecom-local`.
 
 ## Readiness
 
@@ -72,9 +74,7 @@ with a narrower query or the returned conversation id.
 
 ## Short Analysis Skills
 
-When installed, `wc-local` is a short alias for this data-query Skill.
-
-Use the shorter `wc-*` skills for higher-level work:
+Use the other `wc-*` skills for higher-level work:
 
 - `wc-brief`: one conversation brief.
 - `wc-scan`: selected conversations work scan.
@@ -82,8 +82,8 @@ Use the shorter `wc-*` skills for higher-level work:
 - `wc-style`: local evidence-based collaboration profile.
 - `wc-draft`: next-message draft without sending.
 
-These skills still call `wecom-local`; they do not implement Runtime Bridge
-access.
+These skills still call `wecom-local`. They do not implement Runtime Bridge
+access or read local databases directly.
 
 ## Rules
 

@@ -1,12 +1,12 @@
 ---
 name: wc-brief
-description: Summarize one locally visible WeCom conversation window into concrete work facts, owners, open questions, risks, and the next useful question.
+description: Brief one locally visible WeCom chat window: what happened, who owns it, what is missing, and what to ask next.
 ---
 
 # wc-brief
 
-Use this skill when the user wants to understand one WeCom group or chat:
-what happened, who is responsible, what is unclear, and what to ask next.
+Use this skill when the user wants a straight answer from one WeCom group or
+chat, without reading the whole thread by hand.
 
 This skill is an analysis wrapper around `wecom-local`. It must not implement
 Runtime Bridge access.
@@ -39,12 +39,12 @@ Runtime Bridge access.
 
    Increase `-n` / `--max-scan` only when the user asks for a larger window.
 
-4. Answer in this shape:
+4. Answer in this shape. Keep it short unless the user asks for a report:
 
-   - `发生了什么`: 3-7 concrete facts.
+   - `这事卡在哪`: the concrete bottleneck.
    - `已经说清楚的`: decisions, owners, dates, deliverables.
-   - `没说清楚的`: missing owner, deadline, scope, evidence, or acceptance.
-   - `需要追问的`: direct questions the user can send next.
+   - `还差什么`: missing owner, deadline, scope, evidence, or acceptance.
+   - `下一句怎么问`: direct questions the user can send next.
    - `风险`: only risks supported by the messages.
 
 ## Rules

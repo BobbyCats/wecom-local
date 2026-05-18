@@ -16,7 +16,7 @@ It is not an official WeCom API client.
 | Conversation Reference | Implemented | `history` and `export` accept ids or unique display-name queries |
 | History query | Implemented | `wecom-local history <conversation-reference> --format json` |
 | Conversation Export | Implemented | `wecom-local export <conversation-reference> --format json|markdown --output <path>` |
-| Agent Skills | Implemented, intentionally thin | Codex, Claude, Hermes, and `wc-local` skills call the binary |
+| Agent Skills | Implemented, intentionally thin | Codex, Claude, and Hermes Skill docs use `wc-local` as the short invocation name and call the `wecom-local` binary |
 | Analysis Skills | Documented Skill workflows | `wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and `wc-draft` orchestrate CLI JSON without Runtime Bridge code |
 | Members query | Implemented | `wecom-local members <conversation-reference> --format json` returns basic stable JSON by default; `--full` is explicit |
 | Search query | Implemented | Reuses history read path and filters decoded rows locally |

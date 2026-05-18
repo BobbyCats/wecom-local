@@ -1,12 +1,12 @@
 ---
 name: wc-scan
-description: Scan selected locally visible WeCom conversations for a private work overview: active groups, unclear owners, unanswered questions, follow-up needs, and risk signals.
+description: Scan selected locally visible WeCom chats for active groups, unfinished work, unanswered questions, and follow-up needs.
 ---
 
 # wc-scan
 
-Use this skill when the user wants a local overview across multiple WeCom work
-groups or conversations.
+Use this skill when the user wants to look across selected WeCom work groups
+and find where attention is needed.
 
 This is a scoped local scan. It is not monitoring, sync, surveillance, or a
 full-account export.
@@ -53,10 +53,10 @@ conversation separately.
    - conversation label or redacted local label;
    - scanned message count;
    - active sender count and member participation when available;
-   - unresolved questions;
-   - items with owner but no deadline;
-   - items with deadline but no owner;
-   - suggested next action.
+   - what still looks unfinished;
+   - questions nobody answered in the scanned window;
+   - items missing owner or deadline;
+   - one useful next action.
 
 ## Rules
 

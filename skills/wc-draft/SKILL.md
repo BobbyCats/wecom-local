@@ -1,12 +1,12 @@
 ---
 name: wc-draft
-description: Draft a clearer WeCom message using local conversation context and optional collaboration profiles, without sending it automatically.
+description: Draft the next WeCom message from local chat context without sending it automatically.
 ---
 
 # wc-draft
 
-Use this skill when the user wants help writing the next WeCom message after
-reading local conversation context.
+Use this skill when the user wants the next WeCom message to be clearer:
+shorter, more concrete, and harder to dodge.
 
 This skill drafts only. It does not send messages. If the user wants to send
 through official `WecomTeam/wecom-cli`, require explicit confirmation before
@@ -36,7 +36,7 @@ calling any send action outside `wecom-local`.
    - slightly softer version;
    - structured bullet version when the topic has multiple variables.
 
-5. Include why the draft is shaped that way, but keep it brief.
+5. Include why the draft is shaped that way only if it helps the user choose.
 
 ## Rules
 

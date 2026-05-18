@@ -1,24 +1,29 @@
-# WeCom Local CLI
+<h1 align="center">WeCom Local CLI</h1>
 
-[![CI](https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg)](https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml)
-![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
-![Runtime](https://img.shields.io/badge/runtime-read--only-green)
-![Status](https://img.shields.io/badge/status-experimental-orange)
-![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+<p align="center">
+  <a href="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-macOS-lightgrey">
+  <img alt="Runtime" src="https://img.shields.io/badge/runtime-read--only-green">
+  <img alt="Status" src="https://img.shields.io/badge/status-experimental-orange">
+  <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
+</p>
 
-Help agents read the WeCom conversations already visible on your Mac.
+<p align="center">
+  <a href="README.md">中文 README</a>
+</p>
 
-Work chats are often messy. A long reply may start with background, excuses, or
-side issues before getting to the one sentence that matters. A group may discuss
-for a long time and still leave the owner, next step, or deadline unclear.
+Turn locally visible WeCom work chats into JSON an agent can actually use.
 
-Humans can scroll through that pain. Agents need stable, structured data.
+WeCom is where a lot of work really happens, but the useful part is often
+buried under background, excuses, side notes, and long back-and-forth replies.
+After reading N messages, you may still not know who owns the task, when it is
+due, or where it is stuck.
 
-`wecom-local` keeps the scope narrow: read locally visible data from the
-signed-in macOS WeCom Desktop account and return stable JSON. It does not upload
-data, send messages, call the official WeCom API, or expand account visibility.
-
-[中文 README](README.md)
+`wecom-local` keeps the job narrow: read conversations, messages, members, and
+stats already visible to the signed-in macOS WeCom Desktop account, then return
+stable JSON. It does not upload data, send messages, call the official WeCom
+API, or expand account visibility. The agent can turn that JSON into facts,
+unanswered questions, owners, and the next question to ask.
 
 ## Why This Exists
 
@@ -160,22 +165,18 @@ reimplement Runtime Bridge access in a Skill, plugin, or prompt.
 
 ## Short Analysis Skills
 
-The CLI is the local data layer. Higher-level analysis belongs in Agent Skills.
-For shorter invocation names, this repository includes `wc-*` skills. Here
-`wc` means WeCom conversation.
-
-The canonical data-query Skill remains `wecom-local`, matching the project,
-repository, and binary name. `wc-local` is only a shorter alias for daily use;
-it still calls the `wecom-local` binary.
+The CLI binary is still `wecom-local`. Skill names use the shorter `wc-*`
+prefix: `wc-local` reads local data, and the other `wc-*` skills do the actual
+analysis. Shorter daily calls, same binary underneath.
 
 | Skill | Use |
 | --- | --- |
-| `wc-local` | Short alias for the canonical `wecom-local` data-query Skill |
-| `wc-brief` | Summarize one recent conversation window: facts, owners, unclear points, and next question |
-| `wc-scan` | Scan selected work chats for active groups, unfinished items, and unanswered questions |
-| `wc-audit` | Find follow-up gaps: unanswered questions, vague commitments, missing owners, missing deadlines |
-| `wc-style` | Build a local collaboration profile from observed communication patterns, not MBTI labels |
-| `wc-draft` | Draft the next WeCom message from local context without sending it automatically |
+| `wc-local` | Read conversations, messages, members, search, and stats; no judgment layer |
+| `wc-brief` | Turn recent N messages into what happened, who owns it, what is missing, and what to ask next |
+| `wc-scan` | Scan selected chats for active groups, unfinished items, and unanswered questions |
+| `wc-audit` | Find questions nobody answered, vague commitments, missing owners, and missing deadlines |
+| `wc-style` | Describe observable communication habits without turning them into personality labels |
+| `wc-draft` | Draft the next message from context; never send automatically |
 
 These skills orchestrate `wecom-local` JSON commands. They do not reimplement
 Runtime Bridge access and do not write exports by default.
@@ -183,13 +184,14 @@ Runtime Bridge access and do not write exports by default.
 Example prompts:
 
 ```text
-Use wc-brief on "Example Project" recent N messages. Tell me the real issue,
-what is still unclear, and the next question I should ask.
+Use wc-brief on "Example Project" recent N messages. Keep it short: where is
+this stuck, who should reply, and what should I ask next?
 ```
 
 ```text
-Use wc-audit on "Example Team" recent N messages. List unanswered questions,
-missing owners, missing deadlines, and one follow-up question for each item.
+Use wc-audit on "Example Team" recent N messages. Find questions nobody
+answered, vague commitments, missing owners, and missing deadlines. Give me one
+follow-up line for each item.
 ```
 
 ## Safety Boundary

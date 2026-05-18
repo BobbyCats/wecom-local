@@ -9,7 +9,8 @@ tagged releases.
 
 - Added short analysis Skill docs: `wc-brief`, `wc-scan`, `wc-audit`,
   `wc-style`, and `wc-draft`.
-- Added `wc-local` as a short alias for the canonical `wecom-local` Skill.
+- Renamed the Agent-facing data-query Skill invocation to `wc-local` while
+  keeping the CLI binary named `wecom-local`.
 - Documented that analysis Skills stay local, scoped, evidence-based, and
   separate from Runtime Bridge implementation.
 

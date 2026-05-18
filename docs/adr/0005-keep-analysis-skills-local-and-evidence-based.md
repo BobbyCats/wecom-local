@@ -28,8 +28,9 @@ Alternatives considered:
 Keep higher-level analysis in short Agent Skills first. The Rust CLI remains
 the local fact layer: it reads Local Visible Data and emits structured JSON.
 
-Use short Skill names for the first analysis workflows:
+Use short Skill names for local query and the first analysis workflows:
 
+- `wc-local`: local data query Skill that calls the `wecom-local` binary.
 - `wc-brief`: one conversation brief.
 - `wc-scan`: selected conversations work scan.
 - `wc-audit`: follow-up and missing-clarity audit.
@@ -45,6 +46,7 @@ explicit local lens, not as the default public promise.
 
 - The CLI stays small, auditable, and reusable by Codex, Claude, Hermes,
   OpenCLI, and other agents.
+- Skill invocation names stay short without renaming the binary.
 - Analysis workflows can evolve without changing Runtime Bridge selectors.
 - Public examples can show practical work-chat analysis without committing real
   chats, group names, member names, or ids.

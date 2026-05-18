@@ -61,8 +61,8 @@ project-appropriate Skill set for the work:
   release hygiene, or open-source leakage risk: use `$cso`.
 - For README, safety, schema, release readiness, changelog, or Agent Skill
   alignment: use `$document-release`.
-- For short local WeCom data queries, `$wc-local` may be used as an alias for
-  the canonical `$wecom-local` Skill.
+- For local WeCom data queries, use `$wc-local`; it is the short Skill name for
+  the `wecom-local` binary.
 - For higher-level local WeCom analysis, prefer the short `wc-*` Skills:
   `wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and `wc-draft`.
 - Before merging or publishing a diff: use `$review`.

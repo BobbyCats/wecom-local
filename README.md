@@ -1,24 +1,27 @@
-# WeCom Local CLI
+<h1 align="center">WeCom Local CLI</h1>
 
-[![CI](https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg)](https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml)
-![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
-![Runtime](https://img.shields.io/badge/runtime-read--only-green)
-![Status](https://img.shields.io/badge/status-experimental-orange)
-![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+<p align="center">
+  <a href="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-macOS-lightgrey">
+  <img alt="Runtime" src="https://img.shields.io/badge/runtime-read--only-green">
+  <img alt="Status" src="https://img.shields.io/badge/status-experimental-orange">
+  <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
+</p>
 
-让 Agent 读懂本机企业微信里的工作对话。
+<p align="center">
+  <a href="README.en.md">English README</a>
+</p>
 
-工作里最累的事情之一，是在群里来回沟通半天，最后还是不知道：重点是什么、谁负
-责、什么时候交、到底卡在哪。很多回复会先绕一大圈，解释背景、撇清关系、补充一
-堆旁枝，真正有用的信息只夹在中间一两句里。
+把本机企业微信里的工作对话，变成 Agent 能读的本地 JSON。
 
-人可以硬着头皮翻聊天记录。Agent 不行。它需要稳定、结构化、可重复读取的数据。
+企业微信是很多公司的工作现场，也是很多沟通开始变糊的地方：一个问题抛出来，后
+面先是一堆背景、解释、甩锅和补充材料，真正有用的信息反而只夹在一两句里。N 条
+消息看完，还是不知道谁负责、什么时候交、到底卡在哪。
 
-`wecom-local` 做的事情很窄：只读本机 WeCom Desktop 当前账号已经可见的数据，并
-输出稳定 JSON。它不上传数据、不发送消息、不连接官方 WeCom API，也不扩大账号可
-见范围。
-
-[English README](README.en.md)
+`wecom-local` 做一件很窄的事：只读本机 WeCom Desktop 当前账号已经能看到的会
+话、消息、群成员和统计，输出稳定 JSON。它不上传数据、不发送消息、不连接官方
+WeCom API，也不扩大账号可见范围。上层 Agent 可以再把这些 JSON 拆成事实、未回
+答的问题、负责人和下一句该怎么问。
 
 ## 为什么做这个
 
@@ -259,22 +262,17 @@ Runtime Bridge。
 
 ## 短名分析 Skills
 
-底层 CLI 只负责把本机可见数据读出来。真正好用的部分，应该是 Agent 在上面做分
-析。为了少打字，项目里提供一组 `wc-*` 短名 Skill，`wc` 在这里表示 WeCom
-conversation。
-
-基础查询 Skill 的正式名字仍然是 `wecom-local`，和项目名、仓库名、二进制名保持
-一致。日常少打字可以用 `wc-local`，它只是 `wecom-local` Skill 的短 alias，底层
-仍然调用 `wecom-local` 这个 binary。
+命令行工具还是 `wecom-local`。Skill 调用名统一走短名：`wc-local` 做基础查询，
+其他 `wc-*` 负责具体分析。这样日常少打字，也不会把项目名和 binary 改乱。
 
 | Skill | 用途 |
 | --- | --- |
-| `wc-local` | `wecom-local` Skill 的短 alias，用来做基础本地查询 |
-| `wc-brief` | 看一个群最近 N 条消息：发生了什么、谁负责、哪里没说清楚、下一句该问什么 |
-| `wc-scan` | 扫描指定的一批工作群：哪些群活跃、哪些事情没收尾、哪些问题没人答 |
-| `wc-audit` | 专门查追问缺口：问题没人回、承诺太模糊、缺负责人、缺截止时间 |
-| `wc-style` | 做本地协作画像：只看可观察沟通习惯，不把 MBTI 或性格标签当结论 |
-| `wc-draft` | 根据聊天上下文起草下一条企业微信消息；只起草，不自动发送 |
+| `wc-local` | 查会话、消息、成员、搜索和统计；只管拿数据，不做判断 |
+| `wc-brief` | 把一个群最近 N 条消息翻成：发生了什么、谁负责、还差什么、下一句怎么问 |
+| `wc-scan` | 扫你指定的一批群，找活跃群、没收尾的事、没人回的问题 |
+| `wc-audit` | 查“问了没人回、答了但没承诺、没 owner、没时间”的地方 |
+| `wc-style` | 看某个人在这个群里的沟通习惯；只给观察，不下性格判决 |
+| `wc-draft` | 根据上下文起草下一句；只起草，不自动发送 |
 
 这些 Skill 都只是编排 `wecom-local` 的 JSON 命令。它们不会重新实现 Runtime
 Bridge，也不会默认写导出文件。
@@ -282,18 +280,18 @@ Bridge，也不会默认写导出文件。
 示例：
 
 ```text
-请用 wc-brief 看 "Example Project" 最近 N 条消息，告诉我真正的问题是什么，
-哪些地方还没说清楚，下一句我应该怎么问。
+用 wc-brief 看 "Example Project" 最近 N 条消息。别写长报告，直接告诉我：
+这事到底卡在哪、谁该回复、下一句怎么问。
 ```
 
 ```text
-请用 wc-audit 查 "Example Team" 最近 N 条消息，列出没人回答的问题、
-缺负责人/缺截止时间的事项，以及每件事对应的一句追问。
+用 wc-audit 查 "Example Team" 最近 N 条消息，找出问了没人回、答了但没承诺、
+没负责人、没截止时间的地方。每条给一句可以直接发出去的追问。
 ```
 
 ```text
-请用 wc-style 看 "Example Group" 里 Alice 最近 N 条发言，
-只输出可观察沟通习惯和下次怎么问她更容易拿到明确答案。不要给 MBTI 定型。
+用 wc-style 看 "Example Group" 里 Alice 最近 N 条发言。只说能从聊天里看到的沟
+通习惯，以及下次怎么问更容易拿到明确答案。不要给 MBTI 定型。
 ```
 
 ## 输出示例

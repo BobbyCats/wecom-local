@@ -1,12 +1,12 @@
 ---
 name: wc-style
-description: Build a local, evidence-based WeCom collaboration profile for a person or group, focusing on observable communication patterns rather than MBTI or fixed personality labels.
+description: Describe observable WeCom communication habits for a person or group without turning them into MBTI or personality labels.
 ---
 
 # wc-style
 
-Use this skill when the user wants to understand how a person or group tends to
-communicate in locally visible WeCom messages.
+Use this skill when the user wants practical guidance for talking to a person
+or group, based only on locally visible WeCom messages.
 
 Default output is a collaboration profile, not MBTI, diagnosis, or a permanent
 label. If the user explicitly asks for an MBTI-like lens, present it as a loose
@@ -41,8 +41,8 @@ communication lens with low confidence unless there is strong evidence.
 5. Output:
 
    - `观察窗口`: conversation and message/time range.
-   - `可观察习惯`: 3-6 patterns, each with confidence.
-   - `沟通建议`: how to ask this person next time.
+   - `能看出来的习惯`: 3-6 patterns, each with confidence.
+   - `下次怎么问`: how to ask this person next time.
    - `不要过度解读`: what the evidence does not prove.
 
 ## Rules
