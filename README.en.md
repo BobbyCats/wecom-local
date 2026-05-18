@@ -125,6 +125,13 @@ official `wecom-cli` helps it act through WeCom's supported APIs.
 
 ## Install
 
+When Codex or another agent installs this project from the repository URL,
+there are two layers to install:
+
+1. the `wecom-local` binary, which performs local read-only queries;
+2. the `wc-local` and `wc-*` Skills, which tell the agent how to call the binary
+   safely and run higher-level analysis.
+
 For Apple Silicon Macs, download the prebuilt binary from GitHub Releases:
 
 ```bash
@@ -133,6 +140,16 @@ curl -L -o wecom-local.tar.gz \
 tar -xzf wecom-local.tar.gz
 sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
 ```
+
+To use the short Skills in Codex, run this from a checkout of this repository:
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+This installs `skills/codex` as `wc-local`, then installs `wc-brief`,
+`wc-scan`, `wc-audit`, `wc-style`, and `wc-draft`. Restart Codex after
+installation so the new Skills appear in the list.
 
 Or build from source:
 

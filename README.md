@@ -144,6 +144,11 @@ WeCom Desktop 版本兼容证据。
 
 ## 安装
 
+如果是让 Codex 或其他 Agent 通过项目链接安装，本项目有两层需要安装：
+
+1. `wecom-local` 二进制，负责本地只读查询。
+2. `wc-local` 和 `wc-*` Skills，负责告诉 Agent 如何安全调用二进制和做上层分析。
+
 Apple Silicon Mac 推荐从 GitHub Release 下载预编译二进制：
 
 ```bash
@@ -152,6 +157,16 @@ curl -L -o wecom-local.tar.gz \
 tar -xzf wecom-local.tar.gz
 sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
 ```
+
+如果要在 Codex 里使用短名 Skills，从本仓库 checkout 运行：
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+这会把 `skills/codex` 安装为 `wc-local`，并安装 `wc-brief`、`wc-scan`、
+`wc-audit`、`wc-style` 和 `wc-draft`。安装后重启 Codex，让新的 Skills 出现在
+列表里。
 
 也可以从源码构建：
 
