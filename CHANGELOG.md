@@ -13,6 +13,8 @@ tagged releases.
   keeping the CLI binary named `wecom-local`.
 - Documented that analysis Skills stay local, scoped, evidence-based, and
   separate from Runtime Bridge implementation.
+- Added README disclaimers covering unofficial status, trademark ownership,
+  lawful-use limits, and user responsibility.
 
 ## v0.1.1 - 2026-05-18
 

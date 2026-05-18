@@ -73,6 +73,21 @@ Collaboration profiles should describe observed communication patterns in a
 specific scan window. They should not present MBTI, personality labels,
 loyalty, intent, mental health, or protected attributes as facts.
 
+## Legal And Trademark Boundary
+
+`wecom-local` is an unofficial project. It is not affiliated with, authorized
+by, endorsed by, or sponsored by Tencent, WeCom, or WeCom/WeChat Work official
+teams.
+
+Names such as Tencent, WeCom, and 企业微信 are used only to identify the
+compatibility target. Related trademarks, product names, and logos belong to
+their respective owners.
+
+Use is limited to locally visible data that the signed-in user can already
+view. The project must not be presented as a way to bypass permissions,
+monitor other people, bulk collect private content, or violate laws, company
+policies, privacy rules, or service terms.
+
 ## Local Store Probe
 
 `store-probe` is allowed to inspect local WeCom database file headers, page

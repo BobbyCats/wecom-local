@@ -214,6 +214,31 @@ follow-up line for each item.
 See [docs/safety.md](docs/safety.md) and
 [docs/macos-permissions.md](docs/macos-permissions.md).
 
+## Disclaimer
+
+`wecom-local` is an unofficial open-source project. It is not affiliated with,
+authorized by, endorsed by, or sponsored by Tencent, WeCom, or WeCom/WeChat Work
+official teams. Names such as `Tencent`, `WeCom`, and `企业微信` are used only
+to identify the compatibility target. Related trademarks, product names, and
+logos belong to their respective owners.
+
+This tool is intended only for local read-only queries against data already
+visible to the signed-in WeCom Desktop account in the user's own local
+environment, for personal or internal analysis. Users are responsible for
+making sure their use complies with applicable laws, company policies, data
+protection requirements, labor/privacy rules, and Tencent or WeCom terms.
+
+Do not use this tool for unauthorized data access, permission bypass,
+monitoring other people, bulk collection, redistribution of private content, or
+any illegal, infringing, or terms-violating purpose.
+
+The project is provided under the Apache-2.0 license on an "as is" basis. It
+does not promise compatibility with every WeCom Desktop version, and the
+maintainers are not responsible for data leakage, account risk, compliance
+liability, or other consequences caused by use of the tool. If you believe this
+project raises an infringement, security, or compliance issue, contact the
+maintainers through [SECURITY.md](SECURITY.md).
+
 ## Documentation
 
 - [docs/schema.md](docs/schema.md): JSON output schema.
