@@ -66,6 +66,13 @@ fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json:
 
     let process = find_wecom_process()?;
     let script_path = std::env::temp_dir().join(unique_name("wecom-local-lldb", "lldb"));
+    let cleanup = RuntimeTempCleanup::new(
+        std::iter::once(script_path.clone()).chain(
+            expressions
+                .iter()
+                .map(|(_, target_output)| target_output.to_path_buf()),
+        ),
+    );
     let script = build_lldb_script(expressions.iter().map(|(expr, _)| *expr));
 
     fs::write(&script_path, script)
@@ -79,8 +86,6 @@ fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json:
         .arg(&script_path)
         .output()
         .context("failed to start LLDB")?;
-
-    let _ = fs::remove_file(&script_path);
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -103,11 +108,34 @@ fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json:
         let raw = fs::read_to_string(target_output).with_context(|| {
             format!("failed to read runtime export: {}", target_output.display())
         })?;
-        let _ = fs::remove_file(target_output);
         values.push(serde_json::from_str(&raw).context("failed to parse WeCom runtime JSON")?);
     }
 
+    drop(cleanup);
     Ok(values)
+}
+
+#[cfg(target_os = "macos")]
+struct RuntimeTempCleanup {
+    paths: Vec<PathBuf>,
+}
+
+#[cfg(target_os = "macos")]
+impl RuntimeTempCleanup {
+    fn new(paths: impl IntoIterator<Item = PathBuf>) -> Self {
+        Self {
+            paths: paths.into_iter().collect(),
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl Drop for RuntimeTempCleanup {
+    fn drop(&mut self) {
+        for path in &self.paths {
+            let _ = std::fs::remove_file(path);
+        }
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -588,5 +616,18 @@ mod tests {
         assert_eq!(script.matches("expr -l objc++ -O --").count(), 2);
         assert_eq!(script.matches("process detach").count(), 1);
         assert!(script.ends_with("quit\n"));
+    }
+
+    #[test]
+    fn removes_runtime_temp_files_on_drop() {
+        let path = std::env::temp_dir().join(unique_name("wecom-local-cleanup-test", "tmp"));
+        std::fs::write(&path, "synthetic").unwrap();
+
+        {
+            let _cleanup = RuntimeTempCleanup::new([path.clone()]);
+            assert!(path.exists());
+        }
+
+        assert!(!path.exists());
     }
 }

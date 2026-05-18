@@ -32,6 +32,15 @@ Runtime error output should not include raw LLDB expressions by default because
 those expressions can contain local conversation references. Use explicit debug
 diagnostics only for local compatibility work, and sanitize before sharing.
 
+Conversation Reference ambiguity errors should report the error category and
+candidate count, not candidate conversation names or conversation ids. Use
+`wecom-local conversations --query <reference>` locally when a human needs to
+inspect candidates.
+
+Runtime Bridge temporary files, including LLDB scripts and runtime JSON export
+files, should be removed after each attach attempt even when parsing or runtime
+access fails.
+
 ## Runtime Authorization
 
 Runtime Authorization is delegated to local macOS `sudo`/PAM. `auth status`

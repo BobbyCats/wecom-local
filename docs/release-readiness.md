@@ -23,6 +23,8 @@ It is not an official WeCom API client.
 | Member Participation | Implemented | `stats --include-members` compares member count with active senders |
 | Local Store Probe | Implemented | `wecom-local store-probe --json` reports redacted file-format evidence without reading row values |
 | Local Store Reader | Experimental, not implemented | macOS WeCom DB headers look wxSQLite3-like, but key acquisition and page validation are not proven |
+| Runtime temporary file cleanup | Implemented | Runtime Bridge removes LLDB scripts and runtime JSON export files after attach attempts |
+| Redacted ambiguity errors | Implemented | Conversation Reference ambiguity failures report counts and recovery action, not candidate names or ids |
 | Contacts query | Not implemented | Defer until Runtime Bridge selector shape is clear |
 | CI | Implemented locally | `.github/workflows/ci.yml` runs format, clippy, tests, build, and package file list on macOS |
 | Public README | Implemented | Chinese-first `README.md` plus `README.en.md` |
@@ -43,8 +45,8 @@ It is not an official WeCom API client.
 - Confirm README links the macOS Runtime Authorization guidance.
 - Confirm `docs/compatibility.md` states the tested macOS and WeCom Desktop
   versions without private data.
-- Review error messages that may print local conversation names before copying
-  logs into public issues.
+- Confirm error messages copied into public issues do not include local
+  conversation names, conversation ids, member names, or runtime export paths.
 - Create the GitHub repository as private first, push the clean tree, let CI
   pass, then switch visibility to public.
 
@@ -64,6 +66,8 @@ It is not an official WeCom API client.
   Desktop account.
 - Conversation Discovery can identify candidates, but Conversation Reference
   resolution must fail closed when a display-name query is ambiguous.
+- Ambiguous Conversation Reference errors should be recoverable without printing
+  candidate conversation names or ids.
 - Runtime Authorization is delegated to system `sudo`/PAM. The CLI may check or
   warm the sudo timestamp, but must not store macOS passwords, create askpass
   scripts, or install privileged helpers by default.
@@ -206,6 +210,8 @@ Pass criteria:
 - `stats --include-members` returns `stats.member_participation` without a
   `members` array.
 - No durable chat artifact is created.
+- Runtime Bridge temporary LLDB scripts and runtime JSON export files are
+  cleaned up after command completion or failure.
 - The smoke note contains only sanitized output.
 
 ## Non-Runtime CI Checklist

@@ -30,6 +30,7 @@ git diff --check
   runtime export files.
 - Public examples must use synthetic data.
 - Conversation Reference ambiguity must fail closed.
+- Ambiguity errors must not print candidate conversation names or ids.
 
 ## Architecture Language
 
@@ -69,3 +70,6 @@ project-appropriate Skill set for the work:
 Project-specific default: if a task touches WeCom local data, Runtime Bridge,
 Local Store Reader, authorization, or public release readiness, proactively use
 the relevant Skill instead of waiting for the user to name it.
+
+When reporting work to the user, explicitly state which Skills were used in
+that response and what each Skill contributed.

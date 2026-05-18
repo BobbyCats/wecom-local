@@ -9,6 +9,10 @@ tagged releases.
 
 - Added `auth status` and `auth prepare` to check and warm Runtime
   Authorization through system `sudo`/PAM without storing passwords.
+- Hardened Runtime Bridge temporary file cleanup so LLDB scripts and runtime
+  JSON exports are removed after attach attempts.
+- Redacted Conversation Reference ambiguity errors so they report counts and
+  recovery guidance without listing candidate names or ids.
 - Changed `members` to default to basic member fields, with `--full` required
   for sensitive locally visible profile fields.
 - Extended `store-probe --json` proof output with redacted format, key, page

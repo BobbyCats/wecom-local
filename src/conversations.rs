@@ -82,9 +82,7 @@ pub fn resolve_one(payload: &Value, reference: &str) -> Result<ResolvedConversat
     let candidates = candidates_from_payload(payload);
     if candidates.is_empty() {
         return Err(anyhow!(
-            "conversation reference '{}' did not match any locally visible conversation. Run `wecom-local conversations --query \"{}\"` to inspect candidates.",
-            reference,
-            reference
+            "conversation reference did not match any locally visible conversation. Run `wecom-local conversations --query <reference>` to inspect candidates."
         ));
     }
 
@@ -170,32 +168,12 @@ fn candidates_from_payload(payload: &Value) -> Vec<ResolvedConversation> {
 }
 
 fn ambiguous_reference_error(
-    reference: &str,
+    _reference: &str,
     candidates: &[ResolvedConversation],
 ) -> anyhow::Error {
-    let rendered = candidates
-        .iter()
-        .take(5)
-        .map(render_candidate)
-        .collect::<Vec<_>>()
-        .join(", ");
     anyhow!(
-        "conversation reference '{}' matched {} conversations; refine it with `wecom-local conversations --query \"{}\"`. Candidates: {}",
-        reference,
+        "conversation reference matched {} locally visible conversations; refine it with `wecom-local conversations --query <reference>`.",
         candidates.len(),
-        reference,
-        rendered
-    )
-}
-
-fn render_candidate(candidate: &ResolvedConversation) -> String {
-    if candidate.conversation_name.is_empty() {
-        return candidate.conversation_id.clone();
-    }
-
-    format!(
-        "{} ({})",
-        candidate.conversation_name, candidate.conversation_id
     )
 }
 
@@ -394,8 +372,11 @@ mod tests {
         });
 
         let error = resolve_one(&payload, "Alpha").unwrap_err();
-        assert!(error.to_string().contains("matched 2 conversations"));
-        assert!(error.to_string().contains("Synthetic Alpha"));
+        assert!(error
+            .to_string()
+            .contains("matched 2 locally visible conversations"));
+        assert!(!error.to_string().contains("Synthetic Alpha"));
+        assert!(!error.to_string().contains("R:0000000001"));
     }
 
     #[test]
@@ -406,6 +387,7 @@ mod tests {
 
         let error = resolve_one(&payload, "Missing").unwrap_err();
         assert!(error.to_string().contains("did not match"));
+        assert!(!error.to_string().contains("Missing"));
     }
 
     #[test]
