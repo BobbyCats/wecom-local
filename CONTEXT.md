@@ -48,6 +48,10 @@ _Avoid_: analytics sync, monitoring
 A Local Query that lists locally visible members for one conversation.
 _Avoid_: directory sync, contact scrape
 
+**Member Detail Scope**:
+The privacy scope used when returning **Conversation Members**.
+_Avoid_: full dump, profile export
+
 **Member Participation**:
 A Conversation Stats view that compares the visible member count with the
 senders found in a scanned message window.
@@ -85,6 +89,8 @@ _Avoid_: plugin, exporter
 - A **Conversation Export** is optional output from a **Local Query**.
 - **Conversation Members** resolves one **Conversation Reference** before
   reading the member list.
+- **Member Detail Scope** decides whether **Conversation Members** returns only
+  basic display labels or also sensitive profile fields.
 - **Conversation Stats** reuses a conversation-scoped **Local Query** and does
   not require a new **Runtime Bridge** selector.
 - **Member Participation** uses **Conversation Members** and **Conversation

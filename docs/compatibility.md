@@ -41,6 +41,8 @@ or exported files.
 - Repeated attach operations can fail under LLDB/runtime conditions even when a
   single query succeeds.
 - `members` depends on a read-only but UI-adjacent runtime selector.
+- `members --full` can expose more locally visible profile fields than default
+  basic output; compatibility notes should record field names only.
 - `store-probe` proves local file shape only: header patterns, page-size
   aggregates, potential salt-prefix presence, and plain SQLite schema counts.
   It does not prove direct database readability.

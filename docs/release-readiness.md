@@ -17,7 +17,7 @@ It is not an official WeCom API client.
 | History query | Implemented | `wecom-local history <conversation-reference> --format json` |
 | Conversation Export | Implemented | `wecom-local export <conversation-reference> --format json|markdown --output <path>` |
 | Agent Skills | Implemented, intentionally thin | Codex, Claude, and Hermes skills call the binary |
-| Members query | Implemented | `wecom-local members <conversation-reference> --format json` returns stable JSON |
+| Members query | Implemented | `wecom-local members <conversation-reference> --format json` returns basic stable JSON by default; `--full` is explicit |
 | Search query | Implemented | Reuses history read path and filters decoded rows locally |
 | Stats query | Implemented | Reuses history read path and summarizes decoded rows locally |
 | Member Participation | Implemented | `stats --include-members` compares member count with active senders |
@@ -71,6 +71,9 @@ It is not an official WeCom API client.
   implement Runtime Bridge logic.
 - Conversation Export is optional and should be used only when a durable local
   artifact is necessary.
+- Conversation Members uses a basic Member Detail Scope by default. Full member
+  profile fields require explicit opt-in and must be treated as private runtime
+  output.
 - Local Store Probe may inspect file headers, page-shape bytes, and plain SQLite
   schema counts, but must not read row values, emit keys, emit memory bytes, or
   write decrypted databases.
@@ -172,9 +175,11 @@ set -o pipefail
    sudo wecom-local members "<redacted-reference>" --format json
    ```
 
-   Record: member count and member field names only. Do not record member
-   names, accounts, phone numbers, email addresses, user ids, external ids, or
-   group names.
+   Record: member count, `member_detail_scope`, `sensitive_fields_included`,
+   and member field names only. Do not record member names, accounts, phone
+   numbers, email addresses, user ids, external ids, or group names. Do not run
+   `--full` for public smoke notes unless the raw output is discarded and only
+   field names are recorded.
 
 9. Summarize Member Participation:
 
@@ -196,6 +201,8 @@ Pass criteria:
 - `history -n 1` returns valid JSON, `exported_count <= 1`, and decoded output
   does not include `content_base64` or `raw_content_base64`.
 - `members` returns valid JSON with `member_count` and a `members` array.
+- default `members` reports `member_detail_scope: "basic"` and
+  `sensitive_fields_included: false`.
 - `stats --include-members` returns `stats.member_participation` without a
   `members` array.
 - No durable chat artifact is created.

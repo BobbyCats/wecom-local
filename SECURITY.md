@@ -43,6 +43,10 @@ through local authorization. `auth status` and `auth prepare` may check or warm
 the local sudo timestamp, but the CLI must not store passwords, create askpass
 scripts, or install privileged helpers by default.
 
+`members` uses a basic member detail scope by default. `members --full` can
+return sensitive locally visible profile fields, including account, contact, and
+external identifier fields, and should not be pasted into public reports.
+
 ## Local Store Research
 
 Local Store Reader work is experimental. Research must start with no-output

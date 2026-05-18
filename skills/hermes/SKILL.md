@@ -13,6 +13,8 @@ archive material and downstream analysis.
 Check the local environment:
 
 ```bash
+wecom-local auth status --json
+wecom-local auth prepare
 wecom-local doctor --json
 ```
 
@@ -46,7 +48,11 @@ List members in one conversation:
 
 ```bash
 sudo wecom-local members "Example Group" --format json
+sudo wecom-local members "Example Group" --full --format json
 ```
+
+Use default `members` first. Use `--full` only when the user explicitly needs
+locally visible account, email, phone, or external id fields.
 
 Summarize one conversation:
 

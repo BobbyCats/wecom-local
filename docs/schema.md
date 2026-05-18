@@ -228,7 +228,7 @@ conversation. Ambiguous display-name queries fail without reading messages.
 Raw runtime content fields are decoded and removed from normal output.
 
 `wecom-local members <conversation-reference> --format json` returns visible
-members for one conversation.
+members for one conversation using the basic Member Detail Scope by default.
 
 ```json
 {
@@ -236,12 +236,35 @@ members for one conversation.
   "conversation_name": "Example Group",
   "conversation_last_message_id": 123,
   "member_count": 2,
+  "member_detail_scope": "basic",
+  "sensitive_fields_included": false,
+  "members": [
+    {
+      "display_name": "Alice",
+      "name": "Alice",
+      "real_name": "Alice Example"
+    }
+  ]
+}
+```
+
+Use `--full` to include the full Member Detail Scope when a local workflow needs
+sensitive profile fields. Public examples must stay synthetic.
+
+```json
+{
+  "conversation_id": "R:0000000000",
+  "conversation_name": "Example Group",
+  "conversation_last_message_id": 123,
+  "member_count": 1,
+  "member_detail_scope": "full",
+  "sensitive_fields_included": true,
   "members": [
     {
       "user_id": 1,
       "gid": 1001,
       "corp_id": 2001,
-      "display_name": "Alice",
+      "display_name": "Alice Example",
       "name": "Alice",
       "real_name": "Alice Example",
       "rtx_name": "alice",
@@ -256,8 +279,8 @@ members for one conversation.
       "office_phone": "",
       "position": "Product",
       "external_company_name": "",
-      "union_id": "",
-      "wx_open_id": "",
+      "union_id": "synthetic-union",
+      "wx_open_id": "synthetic-open-id",
       "gender": 0,
       "name_status": 0,
       "display_order": 1,
@@ -280,9 +303,9 @@ members for one conversation.
 }
 ```
 
-Member fields reflect what the signed-in desktop runtime exposes locally.
-Fields hidden by the runtime privacy flags are returned as empty strings where
-the CLI can identify the hide flag.
+Member fields reflect what the signed-in desktop runtime exposes locally. Fields
+hidden by runtime privacy flags are returned as empty strings where the CLI can
+identify the hide flag.
 
 `wecom-local search <query> --in <conversation-reference> --json` returns a
 search payload. Search scans decoded message rows from one conversation and
@@ -389,7 +412,8 @@ returning the full member list.
 - History payloads include `offset` and `exported_count`; search payloads
   include `query`, `scan_limit`, `scanned_count`, `matched_count`, and
   `returned_count`.
-- Members payloads include `member_count` and `members`.
+- Members payloads include `member_count`, `member_detail_scope`,
+  `sensitive_fields_included`, and `members`.
 - Stats payloads include `scan_limit`, `scanned_count`, and `stats`.
 - Stats payloads include `stats.member_participation` only when
   `--include-members` is requested.

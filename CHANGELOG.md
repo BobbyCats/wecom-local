@@ -9,6 +9,8 @@ tagged releases.
 
 - Added `auth status` and `auth prepare` to check and warm Runtime
   Authorization through system `sudo`/PAM without storing passwords.
+- Changed `members` to default to basic member fields, with `--full` required
+  for sensitive locally visible profile fields.
 - Extended `store-probe --json` proof output with redacted format, key, page
   validation, and privacy fields while keeping Local Store Reader disabled.
 

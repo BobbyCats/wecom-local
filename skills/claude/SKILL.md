@@ -11,6 +11,8 @@ WeCom Desktop data that is locally visible to the signed-in macOS account.
 ## Readiness
 
 ```bash
+wecom-local auth status --json
+wecom-local auth prepare
 wecom-local doctor --json
 ```
 
@@ -44,7 +46,11 @@ sudo wecom-local search "roadmap" --in "Example Group" -n 20 --json
 
 ```bash
 sudo wecom-local members "Example Group" --format json
+sudo wecom-local members "Example Group" --full --format json
 ```
+
+Use default `members` first. Use `--full` only when the user explicitly needs
+locally visible account, email, phone, or external id fields.
 
 ## Stats JSON
 

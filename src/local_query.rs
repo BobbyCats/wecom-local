@@ -38,7 +38,7 @@ pub fn conversation_stats(
         let (raw_history, raw_members) =
             runtime_bridge::export_history_and_members(&conversation.conversation_id, max_scan, 0)?;
         let payload = decoder::decode_payload(raw_history)?;
-        let members = members::normalize_payload(raw_members)?;
+        let members = members::normalize_payload(raw_members, members::MemberDetailScope::Full)?;
         return stats::summarize_payload_with_members(payload, max_scan, &members);
     }
 
@@ -46,9 +46,12 @@ pub fn conversation_stats(
     stats::summarize_payload(payload, max_scan)
 }
 
-pub fn list_members(conversation_reference: &str) -> Result<Value> {
+pub fn list_members(
+    conversation_reference: &str,
+    scope: members::MemberDetailScope,
+) -> Result<Value> {
     let conversation = resolve_conversation(conversation_reference)?;
-    read_members_for_conversation(&conversation)
+    read_members_for_conversation(&conversation, scope)
 }
 
 fn read_history_for_conversation(
@@ -62,9 +65,10 @@ fn read_history_for_conversation(
 
 fn read_members_for_conversation(
     conversation: &conversations::ResolvedConversation,
+    scope: members::MemberDetailScope,
 ) -> Result<Value> {
     let raw = runtime_bridge::list_members(&conversation.conversation_id)?;
-    members::normalize_payload(raw)
+    members::normalize_payload(raw, scope)
 }
 
 fn resolve_conversation(

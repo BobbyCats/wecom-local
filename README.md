@@ -114,7 +114,12 @@ sudo wecom-local history "Example Group" -n 100 --format json
 
 ```bash
 sudo wecom-local members "Example Group" --format json
+sudo wecom-local members "Example Group" --full --format json
 ```
+
+默认成员输出只包含 basic **Member Detail Scope**，用于降低成员账号、邮箱、手机
+号和外部 id 被误贴到日志或提示词的风险。只有在确实需要完整本地可见 profile 字
+段时才使用 `--full`。
 
 搜索一个会话：
 
@@ -145,7 +150,7 @@ sudo wecom-local export "Example Group" \
 推荐让 Agent 按这个顺序运行：
 
 ```text
-doctor -> conversations --query -> history -> members -> stats/search -> 分析
+auth status -> auth prepare -> doctor -> conversations --query -> history -> members -> stats/search -> 分析
 ```
 
 示例指令：
@@ -212,7 +217,10 @@ Runtime Bridge。
 - 公共文档、测试和示例只使用 synthetic data。
 - `store-probe` 只读取数据库文件头、page shape 字节和 plain SQLite schema 计数；
   它不会读取行值、输出密钥/内存字节或写解密数据库。
-- 真实聊天记录、真实会话 id、群名、联系人名、截图和导出文件不应提交到仓库。
+- `members` 默认只输出 basic 成员字段；`--full` 会输出更多本地可见 profile 字
+  段，使用后不要把原始结果贴到公开位置。
+- 真实聊天记录、真实会话 id、群名、联系人名、成员信息、截图和导出文件不应提
+  交到仓库。
 
 权限细节见 [docs/macos-permissions.md](docs/macos-permissions.md)，安全边界见
 [docs/safety.md](docs/safety.md)。

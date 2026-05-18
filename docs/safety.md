@@ -40,6 +40,14 @@ may check whether the sudo timestamp is currently cached without prompting, and
 CLI must not read, store, log, or load macOS passwords from `.env` files,
 configuration files, Agent prompts, or environment variables.
 
+## Conversation Members
+
+`members` defaults to the basic **Member Detail Scope**. Basic member output is
+intended for roster inspection and avoids account names, email addresses, phone
+numbers, and external identifiers. `members --full` may return sensitive
+locally visible profile fields and should be treated like private runtime
+output.
+
 ## Local Store Probe
 
 `store-probe` is allowed to inspect local WeCom database file headers, page

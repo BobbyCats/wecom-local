@@ -72,8 +72,13 @@ wecom-local store-probe --json
 sudo wecom-local conversations --query "Example"
 sudo wecom-local history "Example Group" -n 100 --format json
 sudo wecom-local members "Example Group" --format json
+sudo wecom-local members "Example Group" --full --format json
 sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
 ```
+
+`members` defaults to the basic Member Detail Scope. Use `--full` only when the
+agent needs sensitive locally visible profile fields such as accounts, email,
+phone, or external ids.
 
 `conversation-reference` can be a conversation id returned by `conversations`
 or a unique display-name query. Ambiguous display-name queries fail closed
@@ -84,7 +89,7 @@ instead of selecting the closest match.
 Recommended sequence:
 
 ```text
-doctor -> conversations --query -> history -> members -> stats/search -> analysis
+auth status -> auth prepare -> doctor -> conversations --query -> history -> members -> stats/search -> analysis
 ```
 
 Agent integrations should call the binary and parse JSON. They should not
@@ -101,6 +106,8 @@ reimplement Runtime Bridge access in a Skill, plugin, or prompt.
 - The CLI does not store passwords, create askpass scripts, or install a
   privileged helper.
 - Public docs and tests must use synthetic data only.
+- `members` returns basic fields by default. `--full` returns more locally
+  visible profile fields and should not be pasted into public locations.
 - `store-probe` reads database headers, page-shape bytes, and plain SQLite
   schema counts only. It does not read row values, print keys or memory bytes,
   or write decrypted databases.

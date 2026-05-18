@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
 
-use crate::{auth, doctor, local_query, output, store_probe};
+use crate::{auth, doctor, local_query, members, output, store_probe};
 
 #[derive(Parser)]
 #[command(
@@ -90,6 +90,9 @@ enum Commands {
     Members {
         /// WeCom conversation id or display-name query to inspect.
         conversation: String,
+        /// Include sensitive locally visible profile fields such as accounts, email, phone, and external ids.
+        #[arg(long)]
+        full: bool,
         /// Output format. Members currently supports JSON output.
         #[arg(short = 'f', long, value_enum, default_value = "json")]
         format: JsonOutputFormat,
@@ -210,9 +213,15 @@ pub fn run() -> Result<()> {
         }
         Commands::Members {
             conversation,
+            full,
             format: _,
         } => {
-            let payload = local_query::list_members(&conversation)?;
+            let scope = if full {
+                members::MemberDetailScope::Full
+            } else {
+                members::MemberDetailScope::Basic
+            };
+            let payload = local_query::list_members(&conversation, scope)?;
             output::print_json(&payload)
         }
         Commands::Export {
