@@ -7,6 +7,8 @@ tagged releases.
 
 ## Unreleased
 
+## v0.1.1 - 2026-05-18
+
 - Added `auth status` and `auth prepare` to check and warm Runtime
   Authorization through system `sudo`/PAM without storing passwords.
 - Hardened Runtime Bridge temporary file cleanup so LLDB scripts and runtime
