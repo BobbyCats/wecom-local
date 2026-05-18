@@ -3,8 +3,9 @@
 ## Supported Versions
 
 `wecom-local` is currently an experimental macOS prototype. Security and
-privacy fixes target the latest commit on `main` until versioned releases
-exist.
+privacy fixes target the latest public release and the latest commit on `main`.
+Users should prefer the newest release unless they are testing unreleased
+changes from source.
 
 ## Reporting A Vulnerability
 

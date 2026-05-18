@@ -27,14 +27,18 @@ It is not an official WeCom API client.
 | Runtime temporary file cleanup | Implemented | Runtime Bridge removes LLDB scripts and runtime JSON export files after attach attempts |
 | Redacted ambiguity errors | Implemented | Conversation Reference ambiguity failures report counts and recovery action, not candidate names or ids |
 | Contacts query | Not implemented | Defer until Runtime Bridge selector shape is clear |
-| CI | Implemented locally | `.github/workflows/ci.yml` runs format, clippy, tests, build, and package file list on macOS |
+| CI | Implemented on GitHub | `.github/workflows/ci.yml` runs format, clippy, tests, build, and package file list on macOS |
 | Public README | Implemented | Chinese-first `README.md` plus `README.en.md` |
 
-## Must Complete Before Open Source
+## Public Release Gate
 
-- Run non-runtime validation: `cargo fmt --check`, `cargo test`, `cargo build`,
-  `cargo clippy --all-targets -- -D warnings`, and `git diff --check`.
-- Run one local runtime smoke with redacted notes only.
+Before publishing a new public tag or release:
+
+- Run non-runtime validation: `cargo fmt --check`, `cargo clippy
+  --all-targets -- -D warnings`, `cargo test`, `cargo build`, `cargo
+  build --release`, `cargo package --list`, and `git diff --check`.
+- Run one local runtime smoke with redacted notes only when runtime behavior,
+  selectors, authorization, or output schemas changed.
 - Confirm README, schema docs, safety docs, and Agent Skills use only synthetic
   conversation ids, names, users, and message text.
 - Confirm no real chat exports, screenshots, group names, contact names, or
@@ -48,8 +52,8 @@ It is not an official WeCom API client.
   versions without private data.
 - Confirm error messages copied into public issues do not include local
   conversation names, conversation ids, member names, or runtime export paths.
-- Create the GitHub repository as private first, push the clean tree, let CI
-  pass, then switch visibility to public.
+- Confirm GitHub CI passes on the public default branch before announcing the
+  release.
 
 ## Can Defer
 
@@ -245,7 +249,7 @@ Pass criteria:
   evidence are not enough to claim direct database support without key
   acquisition and SQLite page-validation proof.
 
-## Pre-Publish Manual Checks
+## Pre-Release Manual Checks
 
 - Verify `Cargo.toml` metadata matches the final repository URL.
 - Verify `README.md` states that this is not an official WeCom API client.
