@@ -209,6 +209,11 @@ wecom-local auth prepare
 wecom-local doctor --json
 ```
 
+给 Agent 使用时，`sudo` 授权要发生在实际运行查询命令的交互式终端/TTY 里。
+在普通终端执行过 `auth prepare`，不一定能授权另一个 Agent 命令会话。Agent 不应
+要求用户把 macOS 密码发到聊天里；如果没有可交互的系统 `sudo`/Touch ID 提示，应
+暂停并让用户在本机终端运行对应命令。
+
 探测本地 WeCom 数据库形态，不读取消息、联系人或成员行值：
 
 ```bash
@@ -388,6 +393,8 @@ Bridge，也不会默认写导出文件。
 - 运行时命令通常需要 `sudo`，因为 macOS 进程附加权限由本机 PAM 管理。
   `auth status` 可以无提示检查当前授权缓存，`auth prepare` 可以通过系统
   `sudo`/PAM 交互预热授权。
+- `sudo` 授权缓存可能按终端/TTY 隔离；Agent 应在同一个可交互授权作用域里运行
+  查询命令，不应让用户把 macOS 密码粘贴进聊天。
 - CLI 不保存 macOS 密码、不创建 askpass 脚本、不安装特权 helper。
 - 公共文档、测试和示例只使用 synthetic data。
 - `store-probe` 只读取数据库文件头、page shape 字节和 plain SQLite schema 计数；

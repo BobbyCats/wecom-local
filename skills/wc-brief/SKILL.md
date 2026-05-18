@@ -11,6 +11,13 @@ chat, without reading the whole thread by hand.
 This skill is an analysis wrapper around `wecom-local`. It must not implement
 Runtime Bridge access.
 
+## Authorization UX
+
+If `sudo` authorization is needed, use an interactive system prompt in the same
+terminal/TTY that will run the query. Do not ask the user to paste their macOS
+password into chat. If no interactive prompt is available, stop and ask the user
+to run the exact local command themselves.
+
 ## Workflow
 
 1. Check readiness when needed:

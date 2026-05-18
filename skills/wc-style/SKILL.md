@@ -12,6 +12,13 @@ Default output is a collaboration profile, not MBTI, diagnosis, or a permanent
 label. If the user explicitly asks for an MBTI-like lens, present it as a loose
 communication lens with low confidence unless there is strong evidence.
 
+## Authorization UX
+
+If `sudo` authorization is needed, use an interactive system prompt in the same
+terminal/TTY that will run the query. Do not ask the user to paste their macOS
+password into chat. If no interactive prompt is available, stop and ask the user
+to run the exact local command themselves.
+
 ## Workflow
 
 1. Resolve the relevant conversation with `conversations`.

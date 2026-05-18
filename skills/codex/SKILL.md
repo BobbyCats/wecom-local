@@ -18,6 +18,24 @@ The Skill name is short. The binary is still `wecom-local`.
 - Runtime access usually needs `sudo` because it attaches to the local
   WeCom Desktop process.
 
+## Authorization UX
+
+`sudo` timestamps can be scoped to the current terminal or TTY. If the user ran
+`wecom-local auth prepare` in a separate Terminal app, the Agent command session
+may still need authorization.
+
+Preferred flow:
+
+1. Run `wecom-local auth status --json`.
+2. If authorization is needed, run `wecom-local auth prepare` or the target
+   `sudo wecom-local ...` command only in an interactive terminal where the user
+   can type the password or use Touch ID directly into the system prompt.
+3. If no interactive terminal is available, stop and ask the user to run the
+   exact local command themselves.
+
+Never ask the user to paste their macOS password into chat, prompt text, an env
+var, a file, or an askpass script. The CLI does not store passwords.
+
 ## Commands
 
 Check readiness:

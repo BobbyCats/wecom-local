@@ -196,6 +196,13 @@ sudo wecom-local members "Example Group" --full --format json
 sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
 ```
 
+For Agent use, `sudo` authorization must happen in the same interactive
+terminal/TTY that will run the runtime query. Running `auth prepare` in a
+separate Terminal window may not authorize another Agent command session. An
+Agent should not ask the user to paste a macOS password into chat; if no
+interactive system `sudo` or Touch ID prompt is available, stop and ask the
+user to run the exact local command themselves.
+
 `members` defaults to the basic Member Detail Scope. Use `--full` only when the
 agent needs sensitive locally visible profile fields such as accounts, email,
 phone, or external ids.
@@ -255,6 +262,9 @@ follow-up line for each item.
   controlled by local macOS PAM.
 - `auth status` checks the current authorization cache without prompting.
   `auth prepare` warms authorization through system `sudo`/PAM interaction.
+- The `sudo` authorization cache may be scoped to a terminal or TTY. Agents
+  should run queries in the same interactive authorization scope and must not
+  ask users to paste macOS passwords into chat.
 - The CLI does not store passwords, create askpass scripts, or install a
   privileged helper.
 - Public docs and tests must use synthetic data only.

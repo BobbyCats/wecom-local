@@ -8,6 +8,13 @@ description: Audit locally visible WeCom messages for questions nobody answered,
 Use this skill when the user wants to know what was asked, promised, or left
 hanging in a WeCom conversation.
 
+## Authorization UX
+
+If `sudo` authorization is needed, use an interactive system prompt in the same
+terminal/TTY that will run the query. Do not ask the user to paste their macOS
+password into chat. If no interactive prompt is available, stop and ask the user
+to run the exact local command themselves.
+
 ## Workflow
 
 1. Resolve one conversation or a small selected set with `conversations`.
