@@ -34,12 +34,15 @@ pub fn conversation_stats(
     include_members: bool,
 ) -> Result<Value> {
     let conversation = resolve_conversation(conversation_reference)?;
-    let payload = read_history_for_conversation(&conversation, max_scan, 0)?;
     if include_members {
-        let members = read_members_for_conversation(&conversation)?;
+        let (raw_history, raw_members) =
+            runtime_bridge::export_history_and_members(&conversation.conversation_id, max_scan, 0)?;
+        let payload = decoder::decode_payload(raw_history)?;
+        let members = members::normalize_payload(raw_members)?;
         return stats::summarize_payload_with_members(payload, max_scan, &members);
     }
 
+    let payload = read_history_for_conversation(&conversation, max_scan, 0)?;
     stats::summarize_payload(payload, max_scan)
 }
 

@@ -2,10 +2,10 @@
 
 All notable changes to WeCom Local CLI will be recorded here.
 
-The project follows a pragmatic pre-1.0 changelog: unreleased entries describe
-the current `main` branch until tagged releases begin.
+The project follows a pragmatic pre-1.0 changelog. Versioned headings describe
+tagged releases.
 
-## Unreleased
+## v0.1.0 - 2026-05-18
 
 - Added read-only Runtime Bridge queries for conversation discovery, history,
   members, search, stats, and optional export.
@@ -14,3 +14,5 @@ the current `main` branch until tagged releases begin.
 - Added `store-probe --json` as a redacted Local Store Probe.
 - Added macOS Runtime Authorization documentation.
 - Added release-readiness, safety, schema, compatibility, and Agent Skill docs.
+- Reduced Runtime Bridge attach churn for `stats --include-members` by reading
+  history and members in one LLDB attach.

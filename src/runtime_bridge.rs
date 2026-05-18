@@ -34,16 +34,39 @@ pub fn list_members(conversation_id: &str) -> Result<serde_json::Value> {
 }
 
 #[cfg(target_os = "macos")]
+pub fn export_history_and_members(
+    conversation_id: &str,
+    limit: usize,
+    offset: usize,
+) -> Result<(serde_json::Value, serde_json::Value)> {
+    let output_dir = wecom_container_tmp()?;
+    let history_output = output_dir.join(unique_name("wecom-local-runtime", "json"));
+    let members_output = output_dir.join(unique_name("wecom-local-members", "json"));
+    let history_expr = build_lldb_expression(conversation_id, limit, offset, &history_output);
+    let members_expr = build_members_expression(conversation_id, &members_output);
+    let mut values = run_lldb_expressions(&[
+        (history_expr.as_str(), history_output.as_path()),
+        (members_expr.as_str(), members_output.as_path()),
+    ])?;
+    let members = values.pop().context("missing member payload")?;
+    let history = values.pop().context("missing history payload")?;
+    Ok((history, members))
+}
+
+#[cfg(target_os = "macos")]
 fn run_lldb_expression(expr: &str, target_output: &Path) -> Result<serde_json::Value> {
+    let mut values = run_lldb_expressions(&[(expr, target_output)])?;
+    values.pop().context("missing runtime payload")
+}
+
+#[cfg(target_os = "macos")]
+fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json::Value>> {
     use std::fs;
     use std::process::Command;
 
     let process = find_wecom_process()?;
     let script_path = std::env::temp_dir().join(unique_name("wecom-local-lldb", "lldb"));
-    let script = format!(
-        "expr -l objc++ -O -- {}\nprocess detach\nquit\n",
-        one_line(expr)
-    );
+    let script = build_lldb_script(expressions.iter().map(|(expr, _)| *expr));
 
     fs::write(&script_path, script)
         .with_context(|| format!("failed to write LLDB script: {}", script_path.display()))?;
@@ -67,17 +90,36 @@ fn run_lldb_expression(expr: &str, target_output: &Path) -> Result<serde_json::V
             lldb_failure_detail(&stdout, &stderr)
         );
     }
-    if !target_output.exists() {
-        bail!(
-            "LLDB finished but did not create the runtime export file. The WeCom runtime interface may have changed.{}",
-            lldb_failure_detail(&stdout, &stderr)
-        );
+
+    let mut values = Vec::with_capacity(expressions.len());
+    for (_, target_output) in expressions {
+        if !target_output.exists() {
+            bail!(
+                "LLDB finished but did not create the runtime export file. The WeCom runtime interface may have changed.{}",
+                lldb_failure_detail(&stdout, &stderr)
+            );
+        }
+
+        let raw = fs::read_to_string(target_output).with_context(|| {
+            format!("failed to read runtime export: {}", target_output.display())
+        })?;
+        let _ = fs::remove_file(target_output);
+        values.push(serde_json::from_str(&raw).context("failed to parse WeCom runtime JSON")?);
     }
 
-    let raw = fs::read_to_string(target_output)
-        .with_context(|| format!("failed to read runtime export: {}", target_output.display()))?;
-    let _ = fs::remove_file(target_output);
-    serde_json::from_str(&raw).context("failed to parse WeCom runtime JSON")
+    Ok(values)
+}
+
+#[cfg(target_os = "macos")]
+fn build_lldb_script<'a>(expressions: impl IntoIterator<Item = &'a str>) -> String {
+    let mut script = String::new();
+    for expr in expressions {
+        script.push_str("expr -l objc++ -O -- ");
+        script.push_str(&one_line(expr));
+        script.push('\n');
+    }
+    script.push_str("process detach\nquit\n");
+    script
 }
 
 #[cfg(target_os = "macos")]
@@ -136,6 +178,15 @@ pub fn list_conversations() -> Result<serde_json::Value> {
 #[cfg(not(target_os = "macos"))]
 pub fn list_members(_conversation_id: &str) -> Result<serde_json::Value> {
     bail!("WeCom runtime member discovery currently supports macOS only")
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn export_history_and_members(
+    _conversation_id: &str,
+    _limit: usize,
+    _offset: usize,
+) -> Result<(serde_json::Value, serde_json::Value)> {
+    bail!("WeCom runtime history and member discovery currently supports macOS only")
 }
 
 #[cfg(target_os = "macos")]
@@ -528,5 +579,14 @@ mod tests {
         assert!(!redacted.contains("NSString"));
         assert!(!redacted.contains("R:123456"));
         assert!(redacted.contains("<redacted-conversation-id>"));
+    }
+
+    #[test]
+    fn builds_one_attach_script_for_multiple_expressions() {
+        let script = build_lldb_script(["int a = 1;", "int b = 2;"]);
+
+        assert_eq!(script.matches("expr -l objc++ -O --").count(), 2);
+        assert_eq!(script.matches("process detach").count(), 1);
+        assert!(script.ends_with("quit\n"));
     }
 }
