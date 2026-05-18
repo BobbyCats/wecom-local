@@ -30,6 +30,8 @@ with stable output and privacy-aware failure modes.
 
 | Area | Command | State |
 | --- | --- | --- |
+| Runtime authorization status | `wecom-local auth status --json` | Implemented |
+| Runtime authorization preparation | `wecom-local auth prepare` | Implemented |
 | Readiness | `wecom-local doctor --json` | Implemented |
 | Conversation discovery | `wecom-local conversations [--query <text>]` | Implemented |
 | Message history | `wecom-local history <conversation-reference>` | Implemented |
@@ -63,6 +65,8 @@ ln -sf "$PWD/target/release/wecom-local" "$HOME/.local/bin/wecom-local"
 ## Quick Start
 
 ```bash
+wecom-local auth status --json
+wecom-local auth prepare
 wecom-local doctor --json
 wecom-local store-probe --json
 sudo wecom-local conversations --query "Example"
@@ -92,11 +96,14 @@ reimplement Runtime Bridge access in a Skill, plugin, or prompt.
 - Runtime Bridge stays read-only.
 - Runtime commands usually require `sudo` because process attach permission is
   controlled by local macOS PAM.
+- `auth status` checks the current authorization cache without prompting.
+  `auth prepare` warms authorization through system `sudo`/PAM interaction.
 - The CLI does not store passwords, create askpass scripts, or install a
   privileged helper.
 - Public docs and tests must use synthetic data only.
-- `store-probe` reads database headers and plain SQLite schema counts only. It
-  does not read row values, print keys, or write decrypted databases.
+- `store-probe` reads database headers, page-shape bytes, and plain SQLite
+  schema counts only. It does not read row values, print keys or memory bytes,
+  or write decrypted databases.
 
 See [docs/safety.md](docs/safety.md) and
 [docs/macos-permissions.md](docs/macos-permissions.md).

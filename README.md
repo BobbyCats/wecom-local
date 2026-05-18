@@ -47,6 +47,8 @@ Desktop 版本兼容证据。
 
 | 能力 | 命令 | 状态 |
 | --- | --- | --- |
+| 运行授权检查 | `wecom-local auth status --json` | 已实现 |
+| 运行授权预热 | `wecom-local auth prepare` | 已实现 |
 | 运行环境检查 | `wecom-local doctor --json` | 已实现 |
 | 会话发现 | `wecom-local conversations [--query <text>]` | 已实现 |
 | 会话消息 | `wecom-local history <conversation-reference>` | 已实现 |
@@ -84,6 +86,8 @@ ln -sf "$PWD/target/release/wecom-local" "$HOME/.local/bin/wecom-local"
 检查运行环境：
 
 ```bash
+wecom-local auth status --json
+wecom-local auth prepare
 wecom-local doctor --json
 ```
 
@@ -202,10 +206,12 @@ Runtime Bridge。
 - 只读取当前登录的 macOS WeCom Desktop 账号已经本地可见的数据。
 - Runtime Bridge 保持只读；不会发送消息、修改会话或写回企业微信。
 - 运行时命令通常需要 `sudo`，因为 macOS 进程附加权限由本机 PAM 管理。
+  `auth status` 可以无提示检查当前授权缓存，`auth prepare` 可以通过系统
+  `sudo`/PAM 交互预热授权。
 - CLI 不保存 macOS 密码、不创建 askpass 脚本、不安装特权 helper。
 - 公共文档、测试和示例只使用 synthetic data。
-- `store-probe` 只读取数据库文件头和 plain SQLite schema 计数；它不会读取行值、
-  输出密钥或写解密数据库。
+- `store-probe` 只读取数据库文件头、page shape 字节和 plain SQLite schema 计数；
+  它不会读取行值、输出密钥/内存字节或写解密数据库。
 - 真实聊天记录、真实会话 id、群名、联系人名、截图和导出文件不应提交到仓库。
 
 权限细节见 [docs/macos-permissions.md](docs/macos-permissions.md)，安全边界见

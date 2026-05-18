@@ -3,6 +3,7 @@ use std::{fs, path::Path};
 use anyhow::{Context, Result};
 use serde_json::Value;
 
+use crate::auth::{AuthPrepareReport, AuthStatusReport};
 use crate::doctor::DoctorReport;
 
 #[derive(Debug, Clone, Copy)]
@@ -28,6 +29,32 @@ pub fn print_doctor_report(report: &DoctorReport, json: bool) -> Result<()> {
         check_line(report.container_tmp.ok, &report.container_tmp.detail)
     );
     println!("status: {:?}", report.status);
+    Ok(())
+}
+
+pub fn print_auth_status(report: &AuthStatusReport) -> Result<()> {
+    println!("status: {}", report.status);
+    println!("authorization_method: {}", report.authorization_method);
+    println!("sudo_timestamp_cached: {}", report.sudo_timestamp_cached);
+    println!("running_as_root: {}", report.running_as_root);
+    println!("password_stored: {}", report.password_stored);
+    println!("can_prepare: {}", report.can_prepare);
+    println!("prepare_command: {}", report.prepare_command);
+    println!("detail: {}", report.detail);
+    Ok(())
+}
+
+pub fn print_auth_prepare(report: &AuthPrepareReport) -> Result<()> {
+    println!("prepared: {}", report.prepared);
+    println!("keepalive_minutes: {}", report.keepalive_minutes);
+    println!(
+        "keepalive_refresh_count: {}",
+        report.keepalive_refresh_count
+    );
+    println!("password_stored: {}", report.password_stored);
+    println!("status_before: {}", report.status_before.status);
+    println!("status_after: {}", report.status_after.status);
+    println!("detail: {}", report.status_after.detail);
     Ok(())
 }
 

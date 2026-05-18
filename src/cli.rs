@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
 
-use crate::{doctor, local_query, output, store_probe};
+use crate::{auth, doctor, local_query, output, store_probe};
 
 #[derive(Parser)]
 #[command(
@@ -18,6 +18,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Check or prepare local runtime authorization.
+    Auth {
+        #[command(subcommand)]
+        command: AuthCommand,
+    },
     /// Check whether the local WeCom Desktop runtime can be reached.
     Doctor {
         /// Emit machine-readable JSON.
@@ -108,6 +113,25 @@ enum Commands {
     },
 }
 
+#[derive(Subcommand)]
+enum AuthCommand {
+    /// Check whether sudo runtime authorization is currently ready.
+    Status {
+        /// Emit machine-readable JSON.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Prompt through sudo/PAM to warm the local authorization timestamp.
+    Prepare {
+        /// Emit machine-readable JSON after preparation.
+        #[arg(long)]
+        json: bool,
+        /// Keep the sudo timestamp refreshed while this command remains running.
+        #[arg(long, default_value = "0")]
+        keepalive_minutes: u16,
+    },
+}
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum OutputFormat {
     Json,
@@ -122,6 +146,27 @@ enum JsonOutputFormat {
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::Auth { command } => match command {
+            AuthCommand::Status { json } => {
+                let report = auth::status();
+                if json {
+                    output::print_json(&serde_json::to_value(report)?)
+                } else {
+                    output::print_auth_status(&report)
+                }
+            }
+            AuthCommand::Prepare {
+                json,
+                keepalive_minutes,
+            } => {
+                let report = auth::prepare(keepalive_minutes)?;
+                if json {
+                    output::print_json(&serde_json::to_value(report)?)
+                } else {
+                    output::print_auth_prepare(&report)
+                }
+            }
+        },
         Commands::Doctor { json } => {
             let report = doctor::run();
             output::print_doctor_report(&report, json)

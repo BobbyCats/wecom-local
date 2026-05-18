@@ -29,8 +29,24 @@ prompt again.
 To warm the authorization before an Agent workflow:
 
 ```bash
-sudo -v
+wecom-local auth status --json
+wecom-local auth prepare
 ```
+
+`auth status` uses non-interactive `sudo -n -v` semantics and will not prompt.
+It only reports whether the local authorization timestamp is already usable.
+
+`auth prepare` delegates prompting to system `sudo`/PAM. The password or Touch
+ID interaction is handled by macOS and `sudo`; `wecom-local` does not receive,
+store, or log the password. For a bounded interactive session, this command can
+keep the timestamp warm while it remains running:
+
+```bash
+wecom-local auth prepare --keepalive-minutes 10
+```
+
+The keepalive mode does not make authorization permanent and does not write a
+password or token to disk.
 
 ## Touch ID For sudo
 
@@ -52,8 +68,8 @@ Do not commit machine-specific PAM files to this repository.
 ## Non-Interactive Agents
 
 If an Agent runs commands without a TTY, `sudo` may fail before `wecom-local`
-starts. In that case, run `sudo -v` interactively first, or configure a local
-authorization flow outside this project.
+starts. In that case, run `wecom-local auth prepare` interactively first, or
+configure a local authorization flow outside this project.
 
 The open-source CLI should not embed passwords, write askpass scripts, or
 install a privileged helper by default. A native macOS app or signed helper can

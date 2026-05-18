@@ -39,11 +39,13 @@ already view locally. It does not grant new WeCom permissions, send messages,
 or write back to WeCom Desktop.
 
 Runtime commands may need `sudo` because macOS controls process attachment
-through local authorization. The CLI must not store passwords, create askpass
+through local authorization. `auth status` and `auth prepare` may check or warm
+the local sudo timestamp, but the CLI must not store passwords, create askpass
 scripts, or install privileged helpers by default.
 
 ## Local Store Research
 
 Local Store Reader work is experimental. Research must start with no-output
-proofs and must not print raw keys, write decrypted databases, or include real
-row values in logs, tests, docs, or issues.
+proofs and must not print raw keys, key candidates, memory bytes, salt bytes,
+page plaintext, write decrypted databases, or include real row values in logs,
+tests, docs, or issues.

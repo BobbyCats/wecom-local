@@ -5,6 +5,13 @@ All notable changes to WeCom Local CLI will be recorded here.
 The project follows a pragmatic pre-1.0 changelog. Versioned headings describe
 tagged releases.
 
+## Unreleased
+
+- Added `auth status` and `auth prepare` to check and warm Runtime
+  Authorization through system `sudo`/PAM without storing passwords.
+- Extended `store-probe --json` proof output with redacted format, key, page
+  validation, and privacy fields while keeping Local Store Reader disabled.
+
 ## v0.1.0 - 2026-05-18
 
 - Added read-only Runtime Bridge queries for conversation discovery, history,

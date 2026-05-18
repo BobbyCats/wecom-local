@@ -8,6 +8,8 @@ It is not an official WeCom API client.
 
 | Area | State | Evidence |
 | --- | --- | --- |
+| Runtime authorization status | Implemented | `wecom-local auth status --json` checks sudo timestamp state without prompting |
+| Runtime authorization preparation | Implemented | `wecom-local auth prepare` warms authorization through system sudo/PAM without storing passwords |
 | Runtime readiness | Implemented | `wecom-local doctor` and `wecom-local doctor --json` |
 | Runtime Authorization docs | Implemented | `docs/macos-permissions.md` documents `sudo`, timestamp caching, and Touch ID |
 | Conversation Discovery | Implemented | `wecom-local conversations [--query <text>]` returns stable JSON |
@@ -20,7 +22,7 @@ It is not an official WeCom API client.
 | Stats query | Implemented | Reuses history read path and summarizes decoded rows locally |
 | Member Participation | Implemented | `stats --include-members` compares member count with active senders |
 | Local Store Probe | Implemented | `wecom-local store-probe --json` reports redacted file-format evidence without reading row values |
-| Local Store Reader | Experimental, not implemented | macOS WeCom DB headers look wxSQLite3-like, but key acquisition and page decoding are not proven |
+| Local Store Reader | Experimental, not implemented | macOS WeCom DB headers look wxSQLite3-like, but key acquisition and page validation are not proven |
 | Contacts query | Not implemented | Defer until Runtime Bridge selector shape is clear |
 | CI | Implemented locally | `.github/workflows/ci.yml` runs format, clippy, tests, build, and package file list on macOS |
 | Public README | Implemented | Chinese-first `README.md` plus `README.en.md` |
@@ -62,12 +64,16 @@ It is not an official WeCom API client.
   Desktop account.
 - Conversation Discovery can identify candidates, but Conversation Reference
   resolution must fail closed when a display-name query is ambiguous.
+- Runtime Authorization is delegated to system `sudo`/PAM. The CLI may check or
+  warm the sudo timestamp, but must not store macOS passwords, create askpass
+  scripts, or install privileged helpers by default.
 - Agent Skills are instructions for calling `wecom-local`; they must not
   implement Runtime Bridge logic.
 - Conversation Export is optional and should be used only when a durable local
   artifact is necessary.
-- Local Store Probe may inspect file headers and plain SQLite schema counts,
-  but must not read row values, emit keys, or write decrypted databases.
+- Local Store Probe may inspect file headers, page-shape bytes, and plain SQLite
+  schema counts, but must not read row values, emit keys, emit memory bytes, or
+  write decrypted databases.
 
 ## Privacy Red Lines
 
@@ -99,11 +105,13 @@ set -o pipefail
 1. Check readiness:
 
    ```bash
+   wecom-local auth status --json
+   wecom-local auth prepare
    wecom-local doctor --json
    ```
 
-   Record: platform, check names, boolean status, and error category. Do not
-   record process ids.
+   Record: authorization status, check names, boolean status, and error
+   category. Do not record process ids or private paths.
 
 2. Probe local store shape:
 
@@ -111,9 +119,11 @@ set -o pipefail
    wecom-local store-probe --json
    ```
 
-   Record: database classification counts, important file names, schema probe
-   counts, and privacy booleans only. Do not record account directory names,
-   raw paths below the data root, keys, or decrypted file paths.
+   Record: database classification counts, important file names, format probe
+   aggregates, schema probe counts, key/page validation status, and privacy
+   booleans only. Do not record account directory names, raw paths below the
+   data root, keys, memory bytes, salt bytes, page plaintext, or decrypted file
+   paths.
 
 3. Discover conversations:
 
@@ -179,7 +189,8 @@ Pass criteria:
 
 - `doctor` reports ready.
 - `store-probe` returns valid JSON, reports privacy booleans as false for row
-  values, keys, and decrypted files, and does not emit account directories.
+  values, keys, memory bytes, memory dumps, and decrypted files, and does not
+  emit account directories.
 - `conversations` returns valid JSON with count fields and conversation field
   names.
 - `history -n 1` returns valid JSON, `exported_count <= 1`, and decoded output
@@ -211,9 +222,9 @@ Pass criteria:
 - `sudo` authorization is cached only for a local timestamp window; unattended
   Agent runs can fail if no TTY or prior authorization is available.
 - Touch ID for `sudo` depends on local PAM configuration and macOS policy.
-- Local Store Reader remains experimental: wxSQLite3-like headers alone are not
-  enough to claim direct database support without key acquisition and page
-  decoding proof.
+- Local Store Reader remains experimental: wxSQLite3-like headers and page-size
+  evidence are not enough to claim direct database support without key
+  acquisition and SQLite page-validation proof.
 
 ## Pre-Publish Manual Checks
 

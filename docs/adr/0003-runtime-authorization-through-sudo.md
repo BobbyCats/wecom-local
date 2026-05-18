@@ -24,6 +24,11 @@ Alternatives considered:
 Use `sudo` and the local macOS PAM stack as the first public Runtime
 Authorization model.
 
+Expose `wecom-local auth status` and `wecom-local auth prepare` as thin CLI
+helpers around that model. They may check or warm the local sudo timestamp, but
+must not store passwords, create askpass scripts, or install privileged
+components.
+
 Document optional Touch ID setup for `sudo` through `/etc/pam.d/sudo_local`
 where supported by macOS. Do not store passwords, create askpass scripts, or
 install privileged helpers in the CLI.

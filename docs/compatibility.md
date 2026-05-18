@@ -17,6 +17,7 @@ Last updated: 2026-05-18.
 
 Redacted local smoke has covered:
 
+- `auth status --json`;
 - `doctor --json`;
 - `store-probe --json`;
 - `conversations`;
@@ -35,13 +36,16 @@ or exported files.
 ## Known Risks
 
 - Runtime selectors can change across WeCom Desktop versions.
+- `auth prepare` depends on interactive local `sudo`/PAM behavior and may not
+  work in non-TTY Agent environments until the user authorizes locally.
 - Repeated attach operations can fail under LLDB/runtime conditions even when a
   single query succeeds.
 - `members` depends on a read-only but UI-adjacent runtime selector.
-- `store-probe` proves local file shape only. It does not prove direct database
-  readability.
+- `store-probe` proves local file shape only: header patterns, page-size
+  aggregates, potential salt-prefix presence, and plain SQLite schema counts.
+  It does not prove direct database readability.
 - Local Store Reader remains experimental until key acquisition and page
-  decoding are proven without emitting secrets.
+  validation are proven without emitting secrets.
 
 ## Reporting Compatibility Results
 

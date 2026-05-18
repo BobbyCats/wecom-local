@@ -32,15 +32,26 @@ Runtime error output should not include raw LLDB expressions by default because
 those expressions can contain local conversation references. Use explicit debug
 diagnostics only for local compatibility work, and sanitize before sharing.
 
+## Runtime Authorization
+
+Runtime Authorization is delegated to local macOS `sudo`/PAM. `auth status`
+may check whether the sudo timestamp is currently cached without prompting, and
+`auth prepare` may ask system `sudo` to warm that timestamp interactively. The
+CLI must not read, store, log, or load macOS passwords from `.env` files,
+configuration files, Agent prompts, or environment variables.
+
 ## Local Store Probe
 
-`store-probe` is allowed to inspect local WeCom database file headers and plain
-SQLite schema counts. It must not:
+`store-probe` is allowed to inspect local WeCom database file headers, page
+shape bytes, and plain SQLite schema counts. It may report aggregate page-size
+distributions, header-pattern counts, potential salt-prefix boolean counts, and
+error categories. It must not:
 
 - read message, member, contact, or conversation row values;
 - print account directory names or real database paths below the WeCom data
   root;
 - print or save raw encryption keys;
+- print or save raw memory bytes, key candidates, salt bytes, or page plaintext;
 - write decrypted database files;
 - claim that Local Store Reader support is available before key acquisition and
   page decoding are both proven.

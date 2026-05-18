@@ -4,6 +4,58 @@ Successful JSON commands write formatted JSON to stdout and exit with status 0.
 Failures exit non-zero and currently emit human-readable errors. Do not parse
 failure text as a stable machine schema.
 
+`wecom-local auth status --json` returns the current Runtime Authorization
+state without prompting for a password.
+
+```json
+{
+  "platform": "macos",
+  "status": "needs_authorization",
+  "authorization_method": "sudo_prompt_required",
+  "sudo_timestamp_cached": false,
+  "running_as_root": false,
+  "password_stored": false,
+  "can_prepare": true,
+  "prepare_command": "wecom-local auth prepare",
+  "detail": "run auth prepare interactively before Agent-driven runtime queries"
+}
+```
+
+`wecom-local auth prepare --json` prompts through system `sudo`/PAM when needed
+and returns the status before and after preparation. The CLI never receives or
+stores the macOS password.
+
+```json
+{
+  "prepared": true,
+  "keepalive_minutes": 0,
+  "keepalive_refresh_count": 0,
+  "password_stored": false,
+  "status_before": {
+    "platform": "macos",
+    "status": "needs_authorization",
+    "authorization_method": "sudo_prompt_required",
+    "sudo_timestamp_cached": false,
+    "running_as_root": false,
+    "password_stored": false,
+    "can_prepare": true,
+    "prepare_command": "wecom-local auth prepare",
+    "detail": "run auth prepare interactively before Agent-driven runtime queries"
+  },
+  "status_after": {
+    "platform": "macos",
+    "status": "ready",
+    "authorization_method": "sudo_timestamp",
+    "sudo_timestamp_cached": true,
+    "running_as_root": false,
+    "password_stored": false,
+    "can_prepare": true,
+    "prepare_command": "wecom-local auth prepare",
+    "detail": "sudo timestamp is cached for this user session"
+  }
+}
+```
+
 `wecom-local doctor --json` returns local readiness checks.
 
 ```json
@@ -55,6 +107,24 @@ decrypted files.
       "unreadable": 0
     }
   ],
+  "format_probe": {
+    "attempted": true,
+    "files_checked": 10,
+    "header_bytes_per_file": 24,
+    "salt_prefix_bytes": 16,
+    "sqlite_header_pattern_count": 2,
+    "wxsqlite3_header_pattern_count": 8,
+    "salt_prefix_checked_count": 8,
+    "salt_prefix_nonzero_count": 8,
+    "salt_prefix_all_zero_count": 0,
+    "page_size_candidates": [
+      {
+        "page_size": 4096,
+        "total": 10
+      }
+    ],
+    "error_count": 0
+  },
   "schema_probe": {
     "attempted": true,
     "sqlite3_available": true,
@@ -65,7 +135,18 @@ decrypted files.
   },
   "key_probe": {
     "attempted": false,
-    "result": "not_attempted_by_store_probe"
+    "result": "not_attempted_by_store_probe",
+    "candidate_count": 0,
+    "matched_count": 0,
+    "validated": false,
+    "error_kind": "not_attempted_by_store_probe"
+  },
+  "page_validation_probe": {
+    "attempted": false,
+    "algorithm_label": "not_attempted",
+    "page_size": null,
+    "validated": false,
+    "error_kind": "no_validated_key"
   },
   "privacy": {
     "row_values_read": false,
@@ -73,7 +154,9 @@ decrypted files.
     "member_values_read": false,
     "real_paths_emitted": false,
     "keys_emitted": false,
-    "decrypted_files_written": false
+    "memory_bytes_emitted": false,
+    "decrypted_files_written": false,
+    "memory_dump_written": false
   }
 }
 ```
@@ -300,8 +383,9 @@ returning the full member list.
   `members`; stats payloads intentionally omit message rows and return
   aggregate counts instead.
 - Store probe payloads include database file counts, important database file
-  classifications, and a privacy block. They intentionally omit file paths
-  below the WeCom data root and do not include schema table names.
+  classifications, redacted format evidence, key/page validation status, and a
+  privacy block. They intentionally omit file paths below the WeCom data root,
+  key bytes, memory bytes, decrypted files, row values, and schema table names.
 - History payloads include `offset` and `exported_count`; search payloads
   include `query`, `scan_limit`, `scanned_count`, `matched_count`, and
   `returned_count`.
