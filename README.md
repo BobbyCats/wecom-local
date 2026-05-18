@@ -3,6 +3,7 @@
 <p align="center">
   <a href="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Platform" src="https://img.shields.io/badge/platform-macOS-lightgrey">
+  <img alt="Language" src="https://img.shields.io/badge/language-Rust-orange">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-read--only-green">
   <img alt="Status" src="https://img.shields.io/badge/status-experimental-orange">
   <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
@@ -406,7 +407,18 @@ git diff --check
 cargo package --list
 ```
 
-贡献规则见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+## 参与贡献
+
+欢迎提 issue 和 PR，尤其是：
+
+- 新的 WeCom Desktop / macOS 版本兼容性证据。
+- Runtime selector 失效、授权失败、重复 attach 失败这类可复现问题。
+- 更好的 Agent Skill 用法、README 示例、安装体验。
+- Local Store Reader 的安全 proof，但不要提交 key、memory dump、解密库或真实数据。
+
+公开 issue / PR 里不要贴真实聊天内容、真实会话 id、群名、联系人名、截图或导出文
+件。需要贴输出时，请先脱敏，只保留状态、数量、字段名和错误类型。完整规则见
+[CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 文档索引
 

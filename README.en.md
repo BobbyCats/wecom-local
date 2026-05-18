@@ -3,6 +3,7 @@
 <p align="center">
   <a href="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/BobbyCats/wecom-local/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Platform" src="https://img.shields.io/badge/platform-macOS-lightgrey">
+  <img alt="Language" src="https://img.shields.io/badge/language-Rust-orange">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-read--only-green">
   <img alt="Status" src="https://img.shields.io/badge/status-experimental-orange">
   <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue">
@@ -270,6 +271,21 @@ cargo build --release
 git diff --check
 cargo package --list
 ```
+
+## Contributing
+
+Issues and pull requests are welcome, especially for:
+
+- compatibility evidence from more WeCom Desktop and macOS versions;
+- reproducible Runtime selector, authorization, or repeated attach failures;
+- better Agent Skill workflows, README examples, and install experience;
+- Local Store Reader safety proofs, without keys, memory dumps, decrypted
+  databases, or real data.
+
+Do not paste real chat content, real conversation ids, private group names,
+contact names, screenshots, or exports into public issues or PRs. If command
+output is needed, redact it down to status, counts, field names, and error
+types. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
