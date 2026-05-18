@@ -164,8 +164,13 @@ The CLI is the local data layer. Higher-level analysis belongs in Agent Skills.
 For shorter invocation names, this repository includes `wc-*` skills. Here
 `wc` means WeCom conversation.
 
+The canonical data-query Skill remains `wecom-local`, matching the project,
+repository, and binary name. `wc-local` is only a shorter alias for daily use;
+it still calls the `wecom-local` binary.
+
 | Skill | Use |
 | --- | --- |
+| `wc-local` | Short alias for the canonical `wecom-local` data-query Skill |
 | `wc-brief` | Summarize one recent conversation window: facts, owners, unclear points, and next question |
 | `wc-scan` | Scan selected work chats for active groups, unfinished items, and unanswered questions |
 | `wc-audit` | Find follow-up gaps: unanswered questions, vague commitments, missing owners, missing deadlines |

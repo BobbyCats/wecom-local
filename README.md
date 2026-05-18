@@ -263,8 +263,13 @@ Runtime Bridge。
 析。为了少打字，项目里提供一组 `wc-*` 短名 Skill，`wc` 在这里表示 WeCom
 conversation。
 
+基础查询 Skill 的正式名字仍然是 `wecom-local`，和项目名、仓库名、二进制名保持
+一致。日常少打字可以用 `wc-local`，它只是 `wecom-local` Skill 的短 alias，底层
+仍然调用 `wecom-local` 这个 binary。
+
 | Skill | 用途 |
 | --- | --- |
+| `wc-local` | `wecom-local` Skill 的短 alias，用来做基础本地查询 |
 | `wc-brief` | 看一个群最近 N 条消息：发生了什么、谁负责、哪里没说清楚、下一句该问什么 |
 | `wc-scan` | 扫描指定的一批工作群：哪些群活跃、哪些事情没收尾、哪些问题没人答 |
 | `wc-audit` | 专门查追问缺口：问题没人回、承诺太模糊、缺负责人、缺截止时间 |

@@ -72,7 +72,9 @@ with a narrower query or the returned conversation id.
 
 ## Short Analysis Skills
 
-When installed, use the shorter `wc-*` skills for higher-level work:
+When installed, `wc-local` is a short alias for this data-query Skill.
+
+Use the shorter `wc-*` skills for higher-level work:
 
 - `wc-brief`: one conversation brief.
 - `wc-scan`: selected conversations work scan.

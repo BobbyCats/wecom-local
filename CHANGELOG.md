@@ -9,6 +9,7 @@ tagged releases.
 
 - Added short analysis Skill docs: `wc-brief`, `wc-scan`, `wc-audit`,
   `wc-style`, and `wc-draft`.
+- Added `wc-local` as a short alias for the canonical `wecom-local` Skill.
 - Documented that analysis Skills stay local, scoped, evidence-based, and
   separate from Runtime Bridge implementation.
 
