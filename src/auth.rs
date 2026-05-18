@@ -115,7 +115,7 @@ fn build_status_report(sudo_probe: SudoProbe, running_as_root: bool) -> AuthStat
             password_stored: false,
             can_prepare: true,
             prepare_command: "wecom-local auth prepare".to_string(),
-            detail: "sudo timestamp is cached for this user session".to_string(),
+            detail: "sudo timestamp is cached for this sudo timestamp scope".to_string(),
         },
         SudoProbe::NeedsAuthorization => AuthStatusReport {
             platform: std::env::consts::OS.to_string(),
@@ -126,8 +126,11 @@ fn build_status_report(sudo_probe: SudoProbe, running_as_root: bool) -> AuthStat
             password_stored: false,
             can_prepare: true,
             prepare_command: "wecom-local auth prepare".to_string(),
-            detail: "run auth prepare interactively before Agent-driven runtime queries"
-                .to_string(),
+            detail: concat!(
+                "authorize in the same interactive sudo timestamp scope that will run runtime ",
+                "queries; do not send passwords to an Agent"
+            )
+            .to_string(),
         },
         SudoProbe::Unavailable => AuthStatusReport {
             platform: std::env::consts::OS.to_string(),

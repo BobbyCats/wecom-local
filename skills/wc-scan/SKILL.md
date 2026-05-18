@@ -11,6 +11,13 @@ and find where attention is needed.
 This is a scoped local scan. It is not monitoring, sync, surveillance, or a
 full-account export.
 
+## Authorization UX
+
+If `sudo` authorization is needed, use an interactive system prompt in the same
+terminal/TTY that will run the query. Do not ask the user to paste their macOS
+password into chat. If no interactive prompt is available, stop and ask the user
+to run the exact local command themselves.
+
 ## Scope First
 
 Before reading messages, identify the scan scope from the user's request:

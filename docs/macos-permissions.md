@@ -22,9 +22,10 @@ when authorization is needed. The password is handled by macOS and `sudo`;
 `wecom-local` never receives it.
 
 After a successful authorization, `sudo` normally caches the authorization for
-a short timestamp window for the same user session. It is not a one-time
-permanent setup. A new terminal, a later session, or an expired timestamp can
-prompt again.
+a short timestamp window. Depending on local `sudo` policy, that timestamp may
+be scoped to the current terminal or TTY. It is not a one-time permanent setup.
+A new terminal, an Agent-created command session, a later session, or an
+expired timestamp can prompt again.
 
 To warm the authorization before an Agent workflow:
 
@@ -68,8 +69,22 @@ Do not commit machine-specific PAM files to this repository.
 ## Non-Interactive Agents
 
 If an Agent runs commands without a TTY, `sudo` may fail before `wecom-local`
-starts. In that case, run `wecom-local auth prepare` interactively first, or
-configure a local authorization flow outside this project.
+starts. If it runs each command in a fresh TTY, a timestamp prepared in a
+separate Terminal window may still not apply to the Agent command.
+
+Agent integrations should follow this order:
+
+1. Run `wecom-local auth status --json`.
+2. If authorization is needed, run the target `sudo wecom-local ...` command
+   or `wecom-local auth prepare` in an interactive terminal where the user can
+   type the password or use Touch ID directly into the system prompt.
+3. If no interactive terminal is available, stop and ask the user to run the
+   exact local command themselves, then provide only the resulting JSON or a
+   summary needed for the task.
+
+Agents must not ask users to paste macOS passwords into chat, environment
+variables, files, or prompt text. A password in chat becomes part of the Agent
+conversation, not a system `sudo` prompt.
 
 The open-source CLI should not embed passwords, write askpass scripts, or
 install a privileged helper by default. A native macOS app or signed helper can

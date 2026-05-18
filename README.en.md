@@ -125,6 +125,13 @@ official `wecom-cli` helps it act through WeCom's supported APIs.
 
 ## Install
 
+When Codex or another agent installs this project from the repository URL,
+there are two layers to install:
+
+1. the `wecom-local` binary, which performs local read-only queries;
+2. the `wc-local` and `wc-*` Skills, which tell the agent how to call the binary
+   safely and run higher-level analysis.
+
 For Apple Silicon Macs, download the prebuilt binary from GitHub Releases:
 
 ```bash
@@ -133,6 +140,16 @@ curl -L -o wecom-local.tar.gz \
 tar -xzf wecom-local.tar.gz
 sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
 ```
+
+To use the short Skills in Codex, run this from a checkout of this repository:
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+This installs `skills/codex` as `wc-local`, then installs `wc-brief`,
+`wc-scan`, `wc-audit`, `wc-style`, and `wc-draft`. Restart Codex after
+installation so the new Skills appear in the list.
 
 Or build from source:
 
@@ -178,6 +195,13 @@ sudo wecom-local members "Example Group" --format json
 sudo wecom-local members "Example Group" --full --format json
 sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
 ```
+
+For Agent use, `sudo` authorization must happen in the same interactive
+terminal/TTY that will run the runtime query. Running `auth prepare` in a
+separate Terminal window may not authorize another Agent command session. An
+Agent should not ask the user to paste a macOS password into chat; if no
+interactive system `sudo` or Touch ID prompt is available, stop and ask the
+user to run the exact local command themselves.
 
 `members` defaults to the basic Member Detail Scope. Use `--full` only when the
 agent needs sensitive locally visible profile fields such as accounts, email,
@@ -238,6 +262,9 @@ follow-up line for each item.
   controlled by local macOS PAM.
 - `auth status` checks the current authorization cache without prompting.
   `auth prepare` warms authorization through system `sudo`/PAM interaction.
+- The `sudo` authorization cache may be scoped to a terminal or TTY. Agents
+  should run queries in the same interactive authorization scope and must not
+  ask users to paste macOS passwords into chat.
 - The CLI does not store passwords, create askpass scripts, or install a
   privileged helper.
 - Public docs and tests must use synthetic data only.
@@ -317,7 +344,9 @@ Issues and pull requests are welcome, especially for:
 Do not paste real chat content, real conversation ids, private group names,
 contact names, screenshots, or exports into public issues or PRs. If command
 output is needed, redact it down to status, counts, field names, and error
-types. See [CONTRIBUTING.md](CONTRIBUTING.md).
+types. See [CONTRIBUTING.md](CONTRIBUTING.md). Maintainers or agents should run
+`scripts/review-pr.sh <PR_NUMBER>` before merging a PR; passing CI alone is not
+the merge gate.
 
 ## License
 

@@ -144,6 +144,11 @@ WeCom Desktop 版本兼容证据。
 
 ## 安装
 
+如果是让 Codex 或其他 Agent 通过项目链接安装，本项目有两层需要安装：
+
+1. `wecom-local` 二进制，负责本地只读查询。
+2. `wc-local` 和 `wc-*` Skills，负责告诉 Agent 如何安全调用二进制和做上层分析。
+
 Apple Silicon Mac 推荐从 GitHub Release 下载预编译二进制：
 
 ```bash
@@ -152,6 +157,16 @@ curl -L -o wecom-local.tar.gz \
 tar -xzf wecom-local.tar.gz
 sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
 ```
+
+如果要在 Codex 里使用短名 Skills，从本仓库 checkout 运行：
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+这会把 `skills/codex` 安装为 `wc-local`，并安装 `wc-brief`、`wc-scan`、
+`wc-audit`、`wc-style` 和 `wc-draft`。安装后重启 Codex，让新的 Skills 出现在
+列表里。
 
 也可以从源码构建：
 
@@ -193,6 +208,11 @@ wecom-local auth status --json
 wecom-local auth prepare
 wecom-local doctor --json
 ```
+
+给 Agent 使用时，`sudo` 授权要发生在实际运行查询命令的交互式终端/TTY 里。
+在普通终端执行过 `auth prepare`，不一定能授权另一个 Agent 命令会话。Agent 不应
+要求用户把 macOS 密码发到聊天里；如果没有可交互的系统 `sudo`/Touch ID 提示，应
+暂停并让用户在本机终端运行对应命令。
 
 探测本地 WeCom 数据库形态，不读取消息、联系人或成员行值：
 
@@ -373,6 +393,8 @@ Bridge，也不会默认写导出文件。
 - 运行时命令通常需要 `sudo`，因为 macOS 进程附加权限由本机 PAM 管理。
   `auth status` 可以无提示检查当前授权缓存，`auth prepare` 可以通过系统
   `sudo`/PAM 交互预热授权。
+- `sudo` 授权缓存可能按终端/TTY 隔离；Agent 应在同一个可交互授权作用域里运行
+  查询命令，不应让用户把 macOS 密码粘贴进聊天。
 - CLI 不保存 macOS 密码、不创建 askpass 脚本、不安装特权 helper。
 - 公共文档、测试和示例只使用 synthetic data。
 - `store-probe` 只读取数据库文件头、page shape 字节和 plain SQLite schema 计数；
@@ -445,7 +467,8 @@ cargo package --list
 
 公开 issue / PR 里不要贴真实聊天内容、真实会话 id、群名、联系人名、截图或导出文
 件。需要贴输出时，请先脱敏，只保留状态、数量、字段名和错误类型。完整规则见
-[CONTRIBUTING.md](CONTRIBUTING.md)。
+[CONTRIBUTING.md](CONTRIBUTING.md)。维护者或 Agent 审 PR 时应先运行
+`scripts/review-pr.sh <PR_NUMBER>`，不要仅凭 CI 通过就合并。
 
 ## 文档索引
 

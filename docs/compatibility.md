@@ -36,8 +36,9 @@ or exported files.
 ## Known Risks
 
 - Runtime selectors can change across WeCom Desktop versions.
-- `auth prepare` depends on interactive local `sudo`/PAM behavior and may not
-  work in non-TTY Agent environments until the user authorizes locally.
+- `auth prepare` depends on interactive local `sudo`/PAM behavior. Sudo
+  timestamps may be scoped to a terminal or TTY, so non-TTY or fresh-TTY Agent
+  environments may still need their own interactive authorization path.
 - Repeated attach operations can fail under LLDB/runtime conditions even when a
   single query succeeds.
 - `members` depends on a read-only but UI-adjacent runtime selector.

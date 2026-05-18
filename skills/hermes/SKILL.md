@@ -10,6 +10,17 @@ archive material and downstream analysis.
 
 The Skill name is short. The binary is still `wecom-local`.
 
+## Authorization UX
+
+`sudo` timestamps can be scoped to the current terminal or TTY. If the user ran
+`wecom-local auth prepare` in a separate Terminal app, the Agent command session
+may still need authorization.
+
+Use an interactive system prompt in the same terminal/TTY that will run the
+query. Do not ask the user to paste their macOS password into chat, prompt
+text, an env var, a file, or an askpass script. If no interactive prompt is
+available, stop and ask the user to run the exact local command themselves.
+
 ## Commands
 
 Check the local environment:

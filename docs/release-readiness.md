@@ -55,6 +55,20 @@ Before publishing a new public tag or release:
 - Confirm GitHub CI passes on the public default branch before announcing the
   release.
 
+## PR Review Gate
+
+Before merging or clean-landing a pull request:
+
+- Run `scripts/review-pr.sh <PR_NUMBER>` and read the final conclusion.
+- Do not merge draft PRs directly.
+- Treat CI as necessary evidence, not a sufficient merge decision.
+- Reject or clean-land PRs whose commit author metadata exposes `.local`,
+  localhost, local paths, or personal machine names.
+- For Runtime Bridge, `sudo`, Local Store Reader, authorization, release-doc, or
+  privacy changes, review from a security-first perspective before landing.
+- Report the change summary, risks, validation commands, merge recommendation,
+  and next step to the user when the user is delegating code review to an Agent.
+
 ## Can Defer
 
 - `contacts` command.
@@ -242,8 +256,9 @@ Pass criteria:
   selectors.
 - Runtime failures should be treated as compatibility evidence, not as proof
   that no local data exists.
-- `sudo` authorization is cached only for a local timestamp window; unattended
-  Agent runs can fail if no TTY or prior authorization is available.
+- `sudo` authorization is cached only for a local timestamp window and may be
+  scoped to a terminal or TTY; unattended Agent runs can fail if no interactive
+  authorization path is available in the command scope.
 - Touch ID for `sudo` depends on local PAM configuration and macOS policy.
 - Local Store Reader remains experimental: wxSQLite3-like headers and page-size
   evidence are not enough to claim direct database support without key

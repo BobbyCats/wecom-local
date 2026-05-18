@@ -36,6 +36,33 @@ git diff --check
 cargo package --list
 ```
 
+## Pull Request Review
+
+Maintainers and Agents should start with:
+
+```bash
+scripts/review-pr.sh <PR_NUMBER>
+```
+
+This script is review-only. It prints PR metadata, status checks, files,
+commits, author hygiene, validation results, tracked-file risk scans, sensitive
+text scans, and a final conclusion. It never merges or comments on the PR.
+
+Review rules:
+
+- Draft PRs are not merged directly.
+- Passing CI does not mean the PR is safe to merge.
+- Commit author email must not expose `.local`, localhost, local paths, or a
+  personal machine name.
+- Runtime Bridge, `sudo`, Local Store Reader, authorization, and privacy-related
+  changes need a security-first review.
+- If useful changes arrive with unsafe public commit metadata, clean-land the
+  diff with maintainer GitHub noreply identity instead of merging the original
+  commit history.
+- When reporting to a non-code owner, include the change summary, risks,
+  validation run, merge recommendation, and the next step if merge is not
+  recommended.
+
 ## Privacy Rules
 
 - Use synthetic data in tests, docs, fixtures, examples, and screenshots.

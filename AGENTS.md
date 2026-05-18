@@ -46,6 +46,19 @@ git diff --check
 - Record durable public decisions in `docs/adr/`.
 - Keep Agent Skills thin; they should call the binary and parse JSON.
 
+## Pull Request Handling
+
+- Do not merge draft pull requests directly.
+- CI passing is not enough for merge; check privacy, Runtime Bridge, sudo, and
+  release-doc implications.
+- Before reviewing or landing an external PR, run `scripts/review-pr.sh
+  <PR_NUMBER>` from a clean main checkout.
+- If commit authors expose `.local`, localhost, machine names, or local paths,
+  clean-land the useful diff with maintainer GitHub noreply identity instead of
+  merging the PR history.
+- Agent review reports must give the user: change summary, risks, validation
+  run, merge recommendation, and the next step when merge is not recommended.
+
 ## Skill Routing
 
 Even when the user does not name a Skill explicitly, choose the smallest

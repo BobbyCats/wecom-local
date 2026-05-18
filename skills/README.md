@@ -26,5 +26,25 @@ Short analysis skills:
 OpenCLI is documented separately under `opencli/` because the first integration
 path is external CLI registration.
 
+## Codex install
+
+From the repository root:
+
+```bash
+scripts/install-codex-skills.sh
+```
+
+The script installs:
+
+- `skills/codex` as `$CODEX_HOME/skills/wc-local`;
+- `skills/wc-brief` as `$CODEX_HOME/skills/wc-brief`;
+- `skills/wc-scan` as `$CODEX_HOME/skills/wc-scan`;
+- `skills/wc-audit` as `$CODEX_HOME/skills/wc-audit`;
+- `skills/wc-style` as `$CODEX_HOME/skills/wc-style`;
+- `skills/wc-draft` as `$CODEX_HOME/skills/wc-draft`.
+
+`CODEX_HOME` defaults to `~/.codex`. Use `--force` to replace existing local
+copies. Restart Codex after installation so the new Skills appear in the list.
+
 All analysis skills must call `wecom-local` and parse JSON. They must not
 reimplement Runtime Bridge access or commit raw local WeCom data.

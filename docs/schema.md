@@ -22,13 +22,15 @@ state without prompting for a password.
   "password_stored": false,
   "can_prepare": true,
   "prepare_command": "wecom-local auth prepare",
-  "detail": "run auth prepare interactively before Agent-driven runtime queries"
+  "detail": "authorize in the same interactive sudo timestamp scope that will run runtime queries; do not send passwords to an Agent"
 }
 ```
 
 `wecom-local auth prepare --json` prompts through system `sudo`/PAM when needed
 and returns the status before and after preparation. The CLI never receives or
-stores the macOS password.
+stores the macOS password. Sudo timestamps may be scoped to a terminal or TTY,
+so an authorization prepared in one terminal may not be reusable by an Agent
+running commands in another terminal.
 
 ```json
 {
@@ -45,7 +47,7 @@ stores the macOS password.
     "password_stored": false,
     "can_prepare": true,
     "prepare_command": "wecom-local auth prepare",
-    "detail": "run auth prepare interactively before Agent-driven runtime queries"
+    "detail": "authorize in the same interactive sudo timestamp scope that will run runtime queries; do not send passwords to an Agent"
   },
   "status_after": {
     "platform": "macos",
@@ -56,7 +58,7 @@ stores the macOS password.
     "password_stored": false,
     "can_prepare": true,
     "prepare_command": "wecom-local auth prepare",
-    "detail": "sudo timestamp is cached for this user session"
+    "detail": "sudo timestamp is cached for this sudo timestamp scope"
   }
 }
 ```
