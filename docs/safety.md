@@ -57,6 +57,22 @@ numbers, and external identifiers. `members --full` may return sensitive
 locally visible profile fields and should be treated like private runtime
 output.
 
+## Analysis Skills
+
+Analysis Skills such as `wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and
+`wc-draft` are local Agent workflows over `wecom-local` JSON output. They must
+not reimplement Runtime Bridge access, bypass Conversation Reference
+resolution, or run unbounded scans by default.
+
+Whole-workspace or all-group analysis must stay explicitly scoped by selected
+conversations and message windows. Durable reports and local profiles should
+be written only when the user asks, and should live under ignored local paths
+such as `.local/wecom-local/`.
+
+Collaboration profiles should describe observed communication patterns in a
+specific scan window. They should not present MBTI, personality labels,
+loyalty, intent, mental health, or protected attributes as facts.
+
 ## Local Store Probe
 
 `store-probe` is allowed to inspect local WeCom database file headers, page

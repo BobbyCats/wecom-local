@@ -1,0 +1,69 @@
+---
+name: wc-scan
+description: Scan selected locally visible WeCom conversations for a private work overview: active groups, unclear owners, unanswered questions, follow-up needs, and risk signals.
+---
+
+# wc-scan
+
+Use this skill when the user wants a local overview across multiple WeCom work
+groups or conversations.
+
+This is a scoped local scan. It is not monitoring, sync, surveillance, or a
+full-account export.
+
+## Scope First
+
+Before reading messages, identify the scan scope from the user's request:
+
+- conversation query terms or explicit conversation ids;
+- time or message window, such as recent N messages per conversation;
+- whether to include only group conversations;
+- whether to write a local report or answer in chat only.
+
+If the user says "all groups", still keep the scan bounded with a per-group
+message limit. Use `conversations` to list candidates, then read each selected
+conversation separately.
+
+## Workflow
+
+1. Check readiness when needed:
+
+   ```bash
+   wecom-local auth status --json
+   wecom-local auth prepare
+   wecom-local doctor --json
+   ```
+
+2. Discover conversations:
+
+   ```bash
+   sudo wecom-local conversations
+   sudo wecom-local conversations --query "Example"
+   ```
+
+3. For each selected conversation, run bounded reads:
+
+   ```bash
+   sudo wecom-local history "Example Group" -n 200 --format json
+   sudo wecom-local stats "Example Group" --max-scan 200 --include-members --json
+   ```
+
+4. Output a table or compact sections:
+
+   - conversation label or redacted local label;
+   - scanned message count;
+   - active sender count and member participation when available;
+   - unresolved questions;
+   - items with owner but no deadline;
+   - items with deadline but no owner;
+   - suggested next action.
+
+## Rules
+
+- Do not run `members --full` unless the user explicitly asks for sensitive
+  locally visible profile fields.
+- Do not save raw conversation JSON by default.
+- If a local artifact is requested, write only under `.local/wecom-local/`.
+- Do not paste scan outputs into public issues, docs, examples, or commits.
+- Treat repeated Runtime Bridge failures as compatibility evidence, not as
+  proof that the conversation has no messages.

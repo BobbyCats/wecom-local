@@ -257,6 +257,40 @@ auth status -> auth prepare -> doctor -> conversations --query -> history -> mem
 Agent 集成应调用二进制并解析 JSON 输出，不应在 Skill、插件或提示词里重新实现
 Runtime Bridge。
 
+## 短名分析 Skills
+
+底层 CLI 只负责把本机可见数据读出来。真正好用的部分，应该是 Agent 在上面做分
+析。为了少打字，项目里提供一组 `wc-*` 短名 Skill，`wc` 在这里表示 WeCom
+conversation。
+
+| Skill | 用途 |
+| --- | --- |
+| `wc-brief` | 看一个群最近 N 条消息：发生了什么、谁负责、哪里没说清楚、下一句该问什么 |
+| `wc-scan` | 扫描指定的一批工作群：哪些群活跃、哪些事情没收尾、哪些问题没人答 |
+| `wc-audit` | 专门查追问缺口：问题没人回、承诺太模糊、缺负责人、缺截止时间 |
+| `wc-style` | 做本地协作画像：只看可观察沟通习惯，不把 MBTI 或性格标签当结论 |
+| `wc-draft` | 根据聊天上下文起草下一条企业微信消息；只起草，不自动发送 |
+
+这些 Skill 都只是编排 `wecom-local` 的 JSON 命令。它们不会重新实现 Runtime
+Bridge，也不会默认写导出文件。
+
+示例：
+
+```text
+请用 wc-brief 看 "Example Project" 最近 N 条消息，告诉我真正的问题是什么，
+哪些地方还没说清楚，下一句我应该怎么问。
+```
+
+```text
+请用 wc-audit 查 "Example Team" 最近 N 条消息，列出没人回答的问题、
+缺负责人/缺截止时间的事项，以及每件事对应的一句追问。
+```
+
+```text
+请用 wc-style 看 "Example Group" 里 Alice 最近 N 条发言，
+只输出可观察沟通习惯和下次怎么问她更容易拿到明确答案。不要给 MBTI 定型。
+```
+
 ## 输出示例
 
 会话发现：
@@ -325,7 +359,7 @@ Runtime Bridge。
 src/                  Rust CLI implementation
 docs/                 schema, safety, permissions, release readiness
 docs/adr/             accepted architecture decisions
-skills/               thin Agent Skill instructions
+skills/               Agent integration and local analysis Skill instructions
 opencli/              OpenCLI external CLI guidance
 CONTEXT.md            domain glossary
 ```

@@ -72,6 +72,19 @@ sudo wecom-local export "Example Group" \
 If a display-name query is ambiguous, run `conversations --query` and retry
 with a narrower query or the returned conversation id.
 
+## Short Analysis Skills
+
+When installed, use the shorter `wc-*` skills for higher-level work:
+
+- `wc-brief`: one conversation brief.
+- `wc-scan`: selected conversations work scan.
+- `wc-audit`: unanswered questions and follow-up gaps.
+- `wc-style`: local evidence-based collaboration profile.
+- `wc-draft`: next-message draft without sending.
+
+These skills still call `wecom-local`; they do not implement Runtime Bridge
+access.
+
 ## Knowledge Boundary
 
 The CLI queries data already visible to the signed-in WeCom Desktop account.

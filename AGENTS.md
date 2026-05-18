@@ -61,6 +61,8 @@ project-appropriate Skill set for the work:
   release hygiene, or open-source leakage risk: use `$cso`.
 - For README, safety, schema, release readiness, changelog, or Agent Skill
   alignment: use `$document-release`.
+- For higher-level local WeCom analysis, prefer the short `wc-*` Skills:
+  `wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and `wc-draft`.
 - Before merging or publishing a diff: use `$review`.
 - For final validation, versioning, commit, push, and PR/release flow: use
   `$ship`.

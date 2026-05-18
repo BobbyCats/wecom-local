@@ -7,6 +7,11 @@ tagged releases.
 
 ## Unreleased
 
+- Added short analysis Skill docs: `wc-brief`, `wc-scan`, `wc-audit`,
+  `wc-style`, and `wc-draft`.
+- Documented that analysis Skills stay local, scoped, evidence-based, and
+  separate from Runtime Bridge implementation.
+
 ## v0.1.1 - 2026-05-18
 
 - Added `auth status` and `auth prepare` to check and warm Runtime

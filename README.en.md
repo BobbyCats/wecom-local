@@ -158,6 +158,35 @@ auth status -> auth prepare -> doctor -> conversations --query -> history -> mem
 Agent integrations should call the binary and parse JSON. They should not
 reimplement Runtime Bridge access in a Skill, plugin, or prompt.
 
+## Short Analysis Skills
+
+The CLI is the local data layer. Higher-level analysis belongs in Agent Skills.
+For shorter invocation names, this repository includes `wc-*` skills. Here
+`wc` means WeCom conversation.
+
+| Skill | Use |
+| --- | --- |
+| `wc-brief` | Summarize one recent conversation window: facts, owners, unclear points, and next question |
+| `wc-scan` | Scan selected work chats for active groups, unfinished items, and unanswered questions |
+| `wc-audit` | Find follow-up gaps: unanswered questions, vague commitments, missing owners, missing deadlines |
+| `wc-style` | Build a local collaboration profile from observed communication patterns, not MBTI labels |
+| `wc-draft` | Draft the next WeCom message from local context without sending it automatically |
+
+These skills orchestrate `wecom-local` JSON commands. They do not reimplement
+Runtime Bridge access and do not write exports by default.
+
+Example prompts:
+
+```text
+Use wc-brief on "Example Project" recent N messages. Tell me the real issue,
+what is still unclear, and the next question I should ask.
+```
+
+```text
+Use wc-audit on "Example Team" recent N messages. List unanswered questions,
+missing owners, missing deadlines, and one follow-up question for each item.
+```
+
 ## Safety Boundary
 
 - Reads only Local Visible Data for the signed-in macOS WeCom Desktop account.

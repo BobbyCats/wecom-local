@@ -77,6 +77,20 @@ A small instruction file that teaches an AI agent how to call `wecom-local`.
 Agent Skills do not implement runtime access.
 _Avoid_: plugin, exporter
 
+**Analysis Skill**:
+An Agent Skill that combines one or more Local Queries to produce a private
+work summary, follow-up audit, communication draft, or collaboration profile.
+_Avoid_: monitor, classifier, surveillance
+
+**Work Scan**:
+A bounded Analysis Skill over selected conversations or message windows.
+_Avoid_: full account sync, background monitor
+
+**Collaboration Profile**:
+A local, evidence-based summary of observable communication patterns within a
+specific message window.
+_Avoid_: MBTI result, personality diagnosis, permanent label
+
 ## Relationships
 
 - A **Runtime Bridge** serves one or more **Local Queries**.
@@ -103,6 +117,11 @@ _Avoid_: plugin, exporter
   private values.
 - An **Agent Skill** calls WeCom Local CLI instead of reimplementing the
   **Runtime Bridge**.
+- An **Analysis Skill** uses **Local Queries** as evidence and keeps analysis
+  outside the **Runtime Bridge**.
+- A **Work Scan** must stay bounded by conversation scope and message window.
+- A **Collaboration Profile** describes observed communication patterns, not a
+  fixed personality type.
 
 ## Example Dialogue
 

@@ -4,6 +4,11 @@ Successful JSON commands write formatted JSON to stdout and exit with status 0.
 Failures exit non-zero and currently emit human-readable errors. Do not parse
 failure text as a stable machine schema.
 
+This document covers `wecom-local` CLI JSON only. Analysis Skills such as
+`wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and `wc-draft` produce
+agent-written summaries or drafts on top of CLI JSON; their prose output is not
+a stable CLI schema.
+
 `wecom-local auth status --json` returns the current Runtime Authorization
 state without prompting for a password.
 
