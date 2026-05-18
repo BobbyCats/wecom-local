@@ -12,18 +12,21 @@
   <a href="README.md">中文 README</a>
 </p>
 
-Turn locally visible WeCom work chats into JSON an agent can actually use.
+Let agents understand locally visible WeCom work conversations.
 
-WeCom is where a lot of work really happens, but the useful part is often
-buried under background, excuses, side notes, and long back-and-forth replies.
-After reading N messages, you may still not know who owns the task, when it is
-due, or where it is stuck.
+Work chats usually do not fail because there are too few messages. They fail
+because the point is scattered: progress, explanations, responsibility,
+deadlines, and blockers are mixed together. After reading N messages, you may
+still not know who owns what, when it is due, or where it is stuck.
 
-`wecom-local` keeps the job narrow: read conversations, messages, members, and
-stats already visible to the signed-in macOS WeCom Desktop account, then return
-stable JSON. It does not upload data, send messages, call the official WeCom
-API, or expand account visibility. The agent can turn that JSON into facts,
-unanswered questions, owners, and the next question to ask.
+`wecom-local` is a local read-only query layer for the signed-in macOS WeCom
+Desktop account. It reads visible conversations, messages, members, and stats
+so an agent can analyze them. It does not upload data, send messages, call the
+official WeCom API, or expand account visibility.
+
+JSON is only the machine interface. The point is not exporting chat logs; it is
+giving agents a stable local query path with recoverable failures and clear
+privacy boundaries.
 
 ## Why This Exists
 
