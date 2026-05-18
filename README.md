@@ -6,44 +6,53 @@
 ![Status](https://img.shields.io/badge/status-experimental-orange)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
-面向 AI Agent 的企业微信 Desktop 本地只读查询 CLI。
+把本机企业微信里已经能看到的会话，安全地交给 Agent 查询和分析。
 
-`wecom-local` 让 Codex、Claude、Hermes 等 Agent 可以用稳定 JSON 查询本机
-企业微信 Desktop 中当前账号已经可见的数据：会话、消息、群成员、关键词搜索和
-基础统计。它不上传数据、不发送消息、不连接官方 WeCom API，也不扩大账号可见范围。
+很多工作问题都藏在企业微信里：事情有没有被接住、谁在跟进、哪个问题反复说不清、
+群里到底哪些人在参与。原生客户端适合聊天，但不适合让 Codex、Claude、Hermes 这
+类 Agent 稳定地读取、搜索和统计。
+
+`wecom-local` 做的事情很窄：只读本机 WeCom Desktop 当前账号已经可见的数据，并
+输出稳定 JSON。它不上传数据、不发送消息、不连接官方 WeCom API，也不扩大账号可
+见范围。
 
 [English README](README.en.md)
 
-## 解决什么问题
+## 为什么做这个
 
-很多企业微信信息只存在于 Desktop 客户端的本地可见状态里。官方 API 适合企业
-Bot、审批、通讯录和系统集成，但它通常无法覆盖一个普通用户在桌面端已经能看到
-的所有历史会话。
+微信已经有类似 `wx-cli` 的本地查询工具，可以把聊天记录交给本地脚本或 Agent
+做整理、搜索、复盘。企业微信更常出现在日常工作里，但这条路一直缺一块。
 
-AI Agent 要分析这些信息时，常见低质量路径是截图、复制粘贴、手工导出文件，或
-让 Agent 猜会话名。这样会带来几个问题：
+一个很常见的场景是：你在企业微信里安排了事情，过几天发现结果不对，回头翻群聊
+才发现中间有很多模糊、跳跃、没人确认的地方。人可以慢慢翻，但 Agent 不能靠截图
+和复制粘贴长期工作。
 
-- 输出不可复现：同一个任务下次很难取到同样结构的数据。
-- 隐私边界模糊：正文、成员、真实会话 id 容易被误贴到日志或仓库。
-- Agent 难以定位：会话名相似时容易读错群。
-- 分析不完整：只看消息正文时，缺少群成员规模、活跃发言者和扫描窗口信息。
+现在常见的办法都不太好：
 
-`wecom-local` 的目标是把这些本地可见数据变成可解释、可恢复、只读、结构化的
-Local Query。
+- 截图：看得到，但 Agent 很难稳定复查。
+- 复制粘贴：一次可以，长期不行，也容易漏上下文。
+- 手工导出：会留下文件，隐私和清理都麻烦。
+- 直接让 Agent 猜会话名：群名相似时容易读错。
+- 官方 API：适合企业系统集成，不等于能读取桌面端当前用户已经看到的历史会话。
+
+`wecom-local` 的目标不是做“监控”，也不是做官方 API 客户端。它只是把本机可见
+的企业微信会话变成可解释、可恢复、只读、结构化的 Local Query。
 
 ## 适合场景
 
-- 让 Codex/Claude/Hermes 先查会话，再读取最近消息并总结行动项。
-- 分析某个项目群的近期讨论窗口，同时区分群成员总数和实际发言人数。
-- 在不写导出文件的前提下，对一个会话做关键词搜索或统计。
-- 为个人归档生成一次性 JSON/Markdown 输出，随后由本地 Agent 处理。
-- 发布前检查本机 WeCom 数据库形态，判断未来 Local Store Reader 是否值得继续
-  研究。
+- 项目复盘：最近 200 条里到底定了什么、谁负责、还有什么没闭环。
+- 跟进检查：之前交代的事情有没有后续，哪些问题被反复绕开。
+- 群活跃度：群成员有多少，真正参与讨论的人有多少。
+- 沟通清晰度：任务描述、反馈、确认动作是否清楚。
+- 风险提示：延期、没人接、前后说法不一致、讨论一直没有结论。
+- 本地归档：只在需要时写一次 JSON/Markdown，其余时候直接让 Agent 查询 JSON。
+
+这些分析应该由上层 Skill 完成。CLI 只负责安全、只读、结构化地把本地数据取出来。
 
 ## 当前状态
 
-实验性 macOS 原型。核心能力已经能在本机运行，但公开发布前仍需要更多 WeCom
-Desktop 版本兼容证据。
+实验性 macOS 工具，已经公开发布 v0.1.1。核心能力可以在本机运行，但仍需要更多
+WeCom Desktop 版本兼容证据。
 
 | 能力 | 命令 | 状态 |
 | --- | --- | --- |
@@ -63,7 +72,16 @@ Desktop 版本兼容证据。
 
 ## 安装
 
-先从源码构建：
+Apple Silicon Mac 推荐从 GitHub Release 下载预编译二进制：
+
+```bash
+curl -L -o wecom-local.tar.gz \
+  https://github.com/BobbyCats/wecom-local/releases/download/v0.1.1/wecom-local-v0.1.1-aarch64-apple-darwin.tar.gz
+tar -xzf wecom-local.tar.gz
+sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
+```
+
+也可以从源码构建：
 
 ```bash
 cargo build --release
@@ -158,6 +176,23 @@ auth status -> auth prepare -> doctor -> conversations --query -> history -> mem
 ```text
 请用 wecom-local 查询 "Example Group" 最近 200 条消息，列出群成员字段，
 再给我一个只包含行动项、未决问题和活跃发言人数的摘要。不要写导出文件。
+```
+
+更贴近日常工作的问法：
+
+```text
+请看一下 "Example Project" 最近 300 条消息：
+1. 哪些事情已经有明确负责人？
+2. 哪些事情被提到了但没有后续？
+3. 哪些成员在实际推动讨论？
+4. 哪些问题需要我今天追一下？
+只输出结论和引用到的消息时间，不要写导出文件。
+```
+
+```text
+请分析 "Example Team" 最近一周的沟通：
+哪些任务说清楚了，哪些任务只是在来回讨论？
+如果有风险，只按“需要确认 / 需要负责人 / 需要截止时间”分类。
 ```
 
 Agent 集成应调用二进制并解析 JSON 输出，不应在 Skill、插件或提示词里重新实现

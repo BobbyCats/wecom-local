@@ -6,25 +6,37 @@
 ![Status](https://img.shields.io/badge/status-experimental-orange)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
-Local read-only WeCom Desktop query CLI for humans and AI agents.
+Safe local access to WeCom Desktop conversations for agents.
 
-`wecom-local` lets Codex, Claude, Hermes, and similar agents query locally
-visible WeCom Desktop data through stable JSON: conversations, messages,
-members, search, stats, and optional exports. It does not upload data, send
-messages, call the official WeCom API, or expand the signed-in account's
-visibility.
+Work conversations often sit inside WeCom: what was assigned, who followed up,
+which questions kept circling, and which people actually joined the discussion.
+The desktop client is good for chatting, but it is not a stable interface for
+Codex, Claude, Hermes, and similar agents.
+
+`wecom-local` keeps the scope narrow: read locally visible data from the
+signed-in macOS WeCom Desktop account and return stable JSON. It does not upload
+data, send messages, call the official WeCom API, or expand account visibility.
 
 [中文 README](README.md)
 
 ## Why This Exists
 
-Official WeCom APIs are useful for bots and enterprise integrations, but they
-do not cover every conversation a user can already see in the desktop app.
-Agent workflows also need structured, repeatable, fail-closed access instead of
-screenshots, manual copy/paste, or ad hoc export files.
+Tools like `wx-cli` have made local WeChat history useful for search, review,
+and private analysis. WeCom is where much of the work conversation happens, but
+the same local agent-friendly path has been missing.
 
-WeCom Local CLI turns local visible desktop data into explicit Local Queries
-with stable output and privacy-aware failure modes.
+Screenshots, copy/paste, and manual exports are fine once. They are not a good
+foundation for repeatable agent workflows. WeCom Local CLI turns local visible
+desktop data into explicit Local Queries with stable output and privacy-aware
+failure modes.
+
+Useful questions include:
+
+- What was actually decided in this project chat?
+- Which tasks have an owner, and which only got discussed?
+- Who participated in the recent discussion window?
+- Which issues need a follow-up today?
+- Where is the conversation missing a clear owner, deadline, or next step?
 
 ## Current Capabilities
 
@@ -45,6 +57,17 @@ with stable output and privacy-aware failure modes.
 | Contacts | `contacts` | Not implemented |
 
 ## Install
+
+For Apple Silicon Macs, download the prebuilt binary from GitHub Releases:
+
+```bash
+curl -L -o wecom-local.tar.gz \
+  https://github.com/BobbyCats/wecom-local/releases/download/v0.1.1/wecom-local-v0.1.1-aarch64-apple-darwin.tar.gz
+tar -xzf wecom-local.tar.gz
+sudo install -m 755 wecom-local-v0.1.1-aarch64-apple-darwin/wecom-local /usr/local/bin/wecom-local
+```
+
+Or build from source:
 
 ```bash
 cargo build --release
