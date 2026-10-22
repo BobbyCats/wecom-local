@@ -118,13 +118,16 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum AuthCommand {
-    /// Check whether sudo runtime authorization is currently ready.
+    /// Check sudo cache state, optionally verifying actual runtime access.
     Status {
         /// Emit machine-readable JSON.
         #[arg(long)]
         json: bool,
+        /// Attach to the current WeCom query service without reading chat rows.
+        #[arg(long)]
+        probe: bool,
     },
-    /// Prompt through sudo/PAM to warm the local authorization timestamp.
+    /// Verify direct access first; use sudo/PAM only after an explicit permission denial.
     Prepare {
         /// Emit machine-readable JSON after preparation.
         #[arg(long)]
@@ -150,8 +153,12 @@ pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Auth { command } => match command {
-            AuthCommand::Status { json } => {
-                let report = auth::status();
+            AuthCommand::Status { json, probe } => {
+                let report = if probe {
+                    auth::probe_status()
+                } else {
+                    auth::status()
+                };
                 if json {
                     output::print_json(&serde_json::to_value(report)?)
                 } else {

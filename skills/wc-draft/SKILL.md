@@ -14,17 +14,19 @@ calling any send action outside `wecom-local`.
 
 ## Authorization UX
 
-If `sudo` authorization is needed, use an interactive system prompt in the same
-terminal/TTY that will run the query. Do not ask the user to paste their macOS
-password into chat. If no interactive prompt is available, stop and ask the user
-to run the exact local command themselves.
+Follow `wc-local`: run the requested read-only query without sudo first. The
+user's task authorizes the needed reads; do not ask again for each command.
+Diagnose only after failure. `auth status` without `--probe` checks sudo cache,
+not actual query access. Only explicit permission denial allows one `sudo -n`
+retry of the same command. Use system authorization only if it remains required;
+never request a password in chat. Keep failed-run notes private.
 
 ## Workflow
 
 1. Read the relevant context:
 
    ```bash
-   sudo wecom-local history "Example Group" -n 100 --format json
+   wecom-local history "Example Group" -n 100 --format json
    ```
 
 2. Optionally use `wc-style` output if the user has an existing local profile

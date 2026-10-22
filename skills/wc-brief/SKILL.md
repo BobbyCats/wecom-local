@@ -13,40 +13,34 @@ Runtime Bridge access.
 
 ## Authorization UX
 
-If `sudo` authorization is needed, use an interactive system prompt in the same
-terminal/TTY that will run the query. Do not ask the user to paste their macOS
-password into chat. If no interactive prompt is available, stop and ask the user
-to run the exact local command themselves.
+Follow `wc-local`: run the requested read-only query without sudo first. The
+user's task authorizes the needed reads; do not ask again for each command.
+Diagnose only after failure. `auth status` without `--probe` checks sudo cache,
+not actual query access. Only explicit permission denial allows one `sudo -n`
+retry of the same command. Use system authorization only if it remains required;
+never request a password in chat. Keep failed-run notes private.
 
 ## Workflow
 
-1. Check readiness when needed:
+1. Resolve the target conversation:
 
    ```bash
-   wecom-local auth status --json
-   wecom-local auth prepare
-   wecom-local doctor --json
-   ```
-
-2. Resolve the target conversation:
-
-   ```bash
-   sudo wecom-local conversations --query "Example Group"
+   wecom-local conversations --query "Example Group"
    ```
 
    If multiple conversations match, stop and ask for a narrower reference or a
    conversation id from the local result. Do not guess.
 
-3. Read a bounded window:
+2. Read a bounded window:
 
    ```bash
-   sudo wecom-local history "Example Group" -n 200 --format json
-   sudo wecom-local stats "Example Group" --max-scan 200 --include-members --json
+   wecom-local history "Example Group" -n 200 --format json
+   wecom-local stats "Example Group" --max-scan 200 --include-members --json
    ```
 
    Increase `-n` / `--max-scan` only when the user asks for a larger window.
 
-4. Answer in this shape. Keep it short unless the user asks for a report:
+3. Answer in this shape. Keep it short unless the user asks for a report:
 
    - `这事卡在哪`: the concrete bottleneck.
    - `已经说清楚的`: decisions, owners, dates, deliverables.

@@ -1,106 +1,104 @@
 ---
 name: wc-local
-description: Short Skill name for querying locally visible WeCom Desktop data through the wecom-local CLI on macOS.
+description: "【企微本地查询】通过 wecom-local 直接查询本地可见企微聊天、成员和统计；按实际失败诊断权限，避免重复授权。"
 ---
 
-# wc-local for Claude
+# wc-local
 
-Use this skill when a user asks to inspect, query, export, summarize, or analyze
-WeCom Desktop data that is locally visible to the signed-in macOS account.
+Use this skill for read-only queries of locally visible WeCom Desktop data.
+The binary is `wecom-local`; the Skill must not implement Runtime Bridge access.
 
-The Skill name is short. The binary is still `wecom-local`.
+## Authorization and fast path
 
-## Authorization UX
+A user's request to query or analyze local WeCom data authorizes the necessary
+read-only queries and private local output within that task. Do not ask again
+for each command, conversation lookup, or bounded retry. This does not authorize
+sending messages, changing account visibility, or publishing private data.
 
-`sudo` timestamps can be scoped to the current terminal or TTY. If the user ran
-`wecom-local auth prepare` in a separate Terminal app, the Agent command session
-may still need authorization.
+1. Run the actual query as the current user, **without sudo**. If the reference
+   is a known conversation id, go straight to `history`, `search`, `members`,
+   or `stats`. Otherwise resolve it with `conversations --query`.
+2. On success, continue immediately. Do not run `auth prepare`, `doctor`, or
+   `store-probe` as mandatory preflight steps. Reuse results within this task.
+3. On failure, inspect the error and run only the diagnostic that answers it.
+   `doctor --json` checks environment prerequisites. `auth status --probe --json`
+   tests actual access without reading chat rows. `store-probe` is only for
+   questions about local store shape, never a permission recovery step.
+4. Only after an explicit runtime permission denial, retry the **same command**
+   once with `sudo -n` if existing authorization may apply. `-n` must not be
+   removed in an unattended session. Do not run another broad scan.
+5. If that fails, record the command, timestamp, failure category, and recovery
+   hint privately under `.local/wecom-local/<task-slug>/` or a mode-0700 temporary
+   directory. Report the actual blocker once. Do not treat it as an empty chat.
 
-Use an interactive system prompt in the same terminal/TTY that will run the
-query. Do not ask the user to paste their macOS password into chat, prompt
-text, an env var, a file, or an askpass script. If no interactive prompt is
-available, stop and ask the user to run the exact local command themselves.
+`auth status --json` without `--probe` checks **sudo cache state only**.
+`needs_authorization` with `runtime_access: not_checked` is not proof that the
+query needs sudo. Older binaries may omit `runtime_access`; use the direct query
+as the test. `doctor: ready` also does not prove runtime access.
 
-## Readiness
+`auth prepare` is a recovery tool, not a routine step. Current versions first
+probe direct access and return without sudo when it works. Only an explicit
+permission denial may lead to interactive system sudo/PAM authorization.
+Never request a password in chat or put it in commands, files, logs, environment
+variables, or askpass scripts. Existing macOS grants can be reused; a Skill
+cannot manufacture grants or promise that an OS prompt will never recur.
 
-```bash
-wecom-local auth status --json
-wecom-local auth prepare
-wecom-local doctor --json
-```
-
-## Local Store Probe
-
-```bash
-wecom-local store-probe --json
-```
-
-## Discover Conversations
-
-```bash
-sudo wecom-local conversations
-sudo wecom-local conversations --query "example"
-```
-
-## Read JSON
-
-```bash
-sudo wecom-local history "R:0000000000" -n 100 --format json
-sudo wecom-local history "Example Group" -n 100 --format json
-```
-
-## Search JSON
+## Private output
 
 ```bash
-sudo wecom-local search "roadmap" --in "Example Group" -n 20 --json
+umask 077
+mkdir -p ./.local/wecom-local/<task-slug>
+wecom-local conversations --query "Example Group" > ./.local/wecom-local/<task-slug>/conversations.json
 ```
 
-## Members JSON
+Keep raw results out of Git and public output. For a one-off task, use a private
+`mktemp -d` directory. Read back and parse saved JSON before drawing conclusions.
+
+## Conversation resolution
+
+1. Use a known id directly. Otherwise run `conversations --query "<keyword>"`.
+2. If display-name lookup fails, use explicit task context to narrow candidates.
+   List all conversations only when targeted lookup could not resolve the name.
+3. Use the returned conversation id for subsequent reads. Ambiguity must fail
+   closed; ask once only if the available task context cannot select a target.
+4. `conversation reference did not match` is a resolution error, not an auth
+   error. Resolve again instead of escalating privileges.
+
+## Commands
 
 ```bash
-sudo wecom-local members "Example Group" --format json
-sudo wecom-local members "Example Group" --full --format json
+wecom-local conversations --query "Example Group"
+wecom-local history "R:0000000000" -n 100 --format json
+wecom-local search "roadmap" --in "R:0000000000" -n 20 --max-scan 1000 --json
+wecom-local stats "R:0000000000" --max-scan 1000 --json
+wecom-local members "R:0000000000" --format json
+wecom-local export "R:0000000000" -n 100 --format markdown --output ./.local/wecom-local/<task-slug>/conversation.md
 ```
 
-Use default `members` first. Use `--full` only when the user explicitly needs
-locally visible account, email, phone, or external id fields.
+Use basic members by default. Use `members --full` only when the task explicitly
+needs locally visible account, email, phone, or external id fields. Start with a
+bounded message window; widen it only to satisfy the requested scope. Use
+`stats --include-members` when both aggregates are needed, avoiding duplicate
+queries for the same window.
 
-## Stats JSON
+## Analysis and failure handling
 
-```bash
-sudo wecom-local stats "Example Group" --max-scan 1000 --json
-sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
-```
+- Paraphrase themes, decisions, owners, constraints, and open questions. Do not
+  paste raw messages unless explicitly requested and appropriate for the output.
+- `stats` shows senders in visible messages, not the full roster. Only successful
+  `members` output supports a roster claim.
+- If `stats` fails but `history` succeeds, derive the requested counts from that
+  bounded history and state the window. Failure is not zero activity.
+- A permission, runtime interface, or parse failure is not an empty result.
+  Keep failed-run notes private and do not update public summaries from failure.
+- Convert private observations to safe summaries before writing project docs.
 
-## Export Markdown
+## Related skills
 
-```bash
-sudo wecom-local export "Example Group" \
-  --format markdown \
-  --output ./.local/wecom-local/conversation.md
-```
+`wc-brief`, `wc-scan`, `wc-audit`, `wc-style`, and `wc-draft` use this same
+query-first authorization flow. They call the CLI and parse JSON; they do not
+read databases directly or implement their own authorization policy.
 
-If a display-name query is ambiguous, run `conversations --query` and retry
-with a narrower query or the returned conversation id.
-
-## Short Analysis Skills
-
-Use the other `wc-*` skills for higher-level work:
-
-- `wc-brief`: one conversation brief.
-- `wc-scan`: selected conversations work scan.
-- `wc-audit`: unanswered questions and follow-up gaps.
-- `wc-style`: local evidence-based collaboration profile.
-- `wc-draft`: next-message draft without sending.
-
-These skills still call `wecom-local`. They do not implement Runtime Bridge
-access or read local databases directly.
-
-## Rules
-
-- Treat returned chat records as private user data.
-- Prefer JSON for analysis and Markdown for human review.
-- Do not include real chat content in commits, issues, or public examples.
-- Do not include real conversation ids, group names, contact names, keys, or
-  exported files in public artifacts.
-- Do not describe the tool as an official WeCom API client.
+Only query data the signed-in user can already view locally. Do not expose raw
+chat, real ids, group/contact names, keys, or raw exports in public issues,
+examples, repository docs, commits, or unrelated final answers.

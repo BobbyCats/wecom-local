@@ -10,10 +10,12 @@ hanging in a WeCom conversation.
 
 ## Authorization UX
 
-If `sudo` authorization is needed, use an interactive system prompt in the same
-terminal/TTY that will run the query. Do not ask the user to paste their macOS
-password into chat. If no interactive prompt is available, stop and ask the user
-to run the exact local command themselves.
+Follow `wc-local`: run the requested read-only query without sudo first. The
+user's task authorizes the needed reads; do not ask again for each command.
+Diagnose only after failure. `auth status` without `--probe` checks sudo cache,
+not actual query access. Only explicit permission denial allows one `sudo -n`
+retry of the same command. Use system authorization only if it remains required;
+never request a password in chat. Keep failed-run notes private.
 
 ## Workflow
 
@@ -23,7 +25,7 @@ to run the exact local command themselves.
    topic:
 
    ```bash
-   sudo wecom-local search "roadmap" --in "Example Group" -n 50 --json
+   wecom-local search "roadmap" --in "Example Group" -n 50 --json
    ```
 
 4. For each possible follow-up item, classify it:

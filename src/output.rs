@@ -35,6 +35,7 @@ pub fn print_doctor_report(report: &DoctorReport, json: bool) -> Result<()> {
 pub fn print_auth_status(report: &AuthStatusReport) -> Result<()> {
     println!("status: {}", report.status);
     println!("authorization_method: {}", report.authorization_method);
+    println!("runtime_access: {}", report.runtime_access);
     println!("sudo_timestamp_cached: {}", report.sudo_timestamp_cached);
     println!("running_as_root: {}", report.running_as_root);
     println!("password_stored: {}", report.password_stored);

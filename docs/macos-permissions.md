@@ -1,91 +1,85 @@
 # macOS Permissions
 
-WeCom Local CLI reads locally visible WeCom Desktop data by asking the running
-desktop process through LLDB. On macOS, attaching to another running process
-usually requires local administrator authorization.
-
-This authorization is **Runtime Authorization**. It is not a WeCom login, does
-not grant new account visibility, and should not be stored by `wecom-local`.
-
-## Expected CLI Flow
-
-Most runtime commands should be run with `sudo`:
+The Runtime Bridge reads locally visible data through the running WeCom Desktop
+process. Try the requested command as the current user first:
 
 ```bash
-sudo wecom-local conversations
-sudo wecom-local history "Example Group" -n 100 --format json
-sudo wecom-local members "Example Group" --format json
+wecom-local conversations --query "Example Group"
+wecom-local history "R:0000000000" -n 100 --format json
 ```
 
-In an interactive terminal, `sudo` prompts for the local macOS account password
-when authorization is needed. The password is handled by macOS and `sudo`;
-`wecom-local` never receives it.
+A successful query is the useful access check. Do not require `auth prepare`,
+`doctor`, or `store-probe` before every query. Existing system permissions can
+allow direct queries even when no sudo timestamp is cached.
 
-After a successful authorization, `sudo` normally caches the authorization for
-a short timestamp window. Depending on local `sudo` policy, that timestamp may
-be scoped to the current terminal or TTY. It is not a one-time permanent setup.
-A new terminal, an Agent-created command session, a later session, or an
-expired timestamp can prompt again.
-
-To warm the authorization before an Agent workflow:
+## Diagnose actual access
 
 ```bash
-wecom-local auth status --json
+wecom-local doctor --json
+wecom-local auth status --probe --json
+```
+
+`doctor` checks LLDB, the app process, and the temporary directory. Its `ready`
+state does not prove a runtime attach or a successful data query.
+
+`auth status --probe` attaches once and checks the query service without reading
+messages, names, ids, or member rows. `runtime_access: verified` proves that
+service was reachable by this process at that moment. It does not prove every
+query selector, grant permanent permission, or validate account visibility.
+macOS may still display its own debugger authorization dialog when its policy
+requires one; the probe does not suppress or automatically approve that dialog.
+
+Without `--probe`, `auth status --json` only checks the sudo timestamp. Its legacy
+`status: needs_authorization` means the sudo cache is unavailable, not that a
+plain query is denied. `runtime_access: not_checked` makes that distinction
+explicit. Integrations must not use the sudo-only status as a query gate.
+
+## Recover after a permission denial
+
+Only an explicit debugger permission denial warrants a permission retry. Reuse
+existing authorization without prompting by retrying the same query once:
+
+```bash
+sudo -n wecom-local conversations --query "Example Group"
+```
+
+Do not treat selector changes, invalid references, JSON failures, a stopped app,
+or a generic attach failure as evidence that sudo is needed. Those failures
+need their own diagnosis. Do not widen a chat scan to recover permission.
+
+If authorization is actually required, use an interactive system prompt:
+
+```bash
 wecom-local auth prepare
 ```
 
-`auth status` uses non-interactive `sudo -n -v` semantics and will not prompt.
-It only reports whether the local authorization timestamp is already usable.
+`auth prepare` first probes direct access. If it succeeds, preparation returns
+immediately without calling interactive sudo or running a keepalive loop.
+Otherwise only an explicit permission denial permits sudo preparation. It first
+tries the noninteractive timestamp check; a new prompt requires an interactive
+stdin and stderr. App/runtime failures return an error instead of asking for a
+password. A successful sudo preparation verifies the timestamp, not root runtime
+access; rerun the requested query with sudo in the same terminal.
 
-`auth prepare` delegates prompting to system `sudo`/PAM. The password or Touch
-ID interaction is handled by macOS and `sudo`; `wecom-local` does not receive,
-store, or log the password. For a bounded interactive session, this command can
-keep the timestamp warm while it remains running:
+For the sudo path only, `--keepalive-minutes 10` refreshes the timestamp while
+preparation remains running. Timestamps may be scoped to a terminal, TTY, or
+process context. Preparation in another terminal need not authorize an Agent
+session. Expiration, a new login, changed system settings, or app updates can
+require authorization again.
 
-```bash
-wecom-local auth prepare --keepalive-minutes 10
-```
+Passwords belong only in the macOS/sudo prompt. Never send them in chat or put
+them in commands, environment variables, files, logs, or askpass scripts. The
+CLI does not store passwords or install privileged helpers.
 
-The keepalive mode does not make authorization permanent and does not write a
-password or token to disk.
+## Touch ID and operating-system policy
 
-## Touch ID For sudo
+Where macOS provides `/etc/pam.d/sudo_local.template`, a system administrator
+can configure `pam_tid.so` in the local sudo PAM override. This is optional
+system configuration, not a prerequisite or an action performed by the Skill.
+Touch ID availability depends on the terminal and local policy.
 
-On macOS versions that provide `/etc/pam.d/sudo_local.template`, Touch ID for
-`sudo` can be enabled through the local PAM override file. The template is
-included by `/etc/pam.d/sudo` and is designed to survive system updates.
-
-Create or edit `/etc/pam.d/sudo_local` as root and enable:
-
-```text
-auth       sufficient     pam_tid.so
-```
-
-After that, `sudo wecom-local ...` can use Touch ID where the terminal and
-system policy allow it.
-
-Do not commit machine-specific PAM files to this repository.
-
-## Non-Interactive Agents
-
-If an Agent runs commands without a TTY, `sudo` may fail before `wecom-local`
-starts. If it runs each command in a fresh TTY, a timestamp prepared in a
-separate Terminal window may still not apply to the Agent command.
-
-Agent integrations should follow this order:
-
-1. Run `wecom-local auth status --json`.
-2. If authorization is needed, run the target `sudo wecom-local ...` command
-   or `wecom-local auth prepare` in an interactive terminal where the user can
-   type the password or use Touch ID directly into the system prompt.
-3. If no interactive terminal is available, stop and ask the user to run the
-   exact local command themselves, then provide only the resulting JSON or a
-   summary needed for the task.
-
-Agents must not ask users to paste macOS passwords into chat, environment
-variables, files, or prompt text. A password in chat becomes part of the Agent
-conversation, not a system `sudo` prompt.
-
-The open-source CLI should not embed passwords, write askpass scripts, or
-install a privileged helper by default. A native macOS app or signed helper can
-be considered later, but it is outside the first public CLI scope.
+A Skill instruction cannot grant macOS access. Apple documents debugger
+entitlements and system authorization separately from application permissions:
+[Debugging tool entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.security.cs.debugger).
+The query-first flow reuses existing access; it does not change system policy,
+re-sign WeCom, install a helper, or create passwordless sudo rules.

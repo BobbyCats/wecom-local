@@ -43,9 +43,10 @@ access fails.
 
 ## Runtime Authorization
 
-Runtime Authorization is delegated to local macOS `sudo`/PAM. `auth status`
-may check whether the sudo timestamp is currently cached without prompting, and
-`auth prepare` may ask system `sudo` to warm that timestamp interactively. The
+Runtime queries first reuse current-user access. `auth status --probe` checks
+the service without reading chat rows; plain `auth status` only checks sudo
+cache state. `auth prepare` skips interactive sudo when direct access works.
+Only explicit permission denial may lead to system sudo/PAM preparation. The
 CLI must not read, store, log, or load macOS passwords from `.env` files,
 configuration files, Agent prompts, or environment variables.
 

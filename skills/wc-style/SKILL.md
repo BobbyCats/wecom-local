@@ -14,10 +14,12 @@ communication lens with low confidence unless there is strong evidence.
 
 ## Authorization UX
 
-If `sudo` authorization is needed, use an interactive system prompt in the same
-terminal/TTY that will run the query. Do not ask the user to paste their macOS
-password into chat. If no interactive prompt is available, stop and ask the user
-to run the exact local command themselves.
+Follow `wc-local`: run the requested read-only query without sudo first. The
+user's task authorizes the needed reads; do not ask again for each command.
+Diagnose only after failure. `auth status` without `--probe` checks sudo cache,
+not actual query access. Only explicit permission denial allows one `sudo -n`
+retry of the same command. Use system authorization only if it remains required;
+never request a password in chat. Keep failed-run notes private.
 
 ## Workflow
 
@@ -25,14 +27,14 @@ to run the exact local command themselves.
 2. Read a bounded message window:
 
    ```bash
-   sudo wecom-local history "Example Group" -n 300 --format json
-   sudo wecom-local stats "Example Group" --max-scan 300 --include-members --json
+   wecom-local history "Example Group" -n 300 --format json
+   wecom-local stats "Example Group" --max-scan 300 --include-members --json
    ```
 
 3. If identifying a member is needed, use basic members first:
 
    ```bash
-   sudo wecom-local members "Example Group" --format json
+   wecom-local members "Example Group" --format json
    ```
 
 4. Build the profile from observable patterns:

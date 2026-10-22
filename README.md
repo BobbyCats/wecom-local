@@ -201,18 +201,17 @@ ln -sf "$PWD/target/release/wecom-local" "$HOME/.local/bin/wecom-local"
 
 ## 快速开始
 
-检查运行环境：
+直接执行目标查询，无需先运行授权准备。查询失败时再按错误检查环境：
 
 ```bash
-wecom-local auth status --json
-wecom-local auth prepare
 wecom-local doctor --json
+wecom-local auth status --probe --json
 ```
 
-给 Agent 使用时，`sudo` 授权要发生在实际运行查询命令的交互式终端/TTY 里。
-在普通终端执行过 `auth prepare`，不一定能授权另一个 Agent 命令会话。Agent 不应
-要求用户把 macOS 密码发到聊天里；如果没有可交互的系统 `sudo`/Touch ID 提示，应
-暂停并让用户在本机终端运行对应命令。
+不带 `--probe` 的 `auth status` 只检查 sudo 缓存，不能判断普通查询是否可用。
+只有明确的权限拒绝才尝试一次 `sudo -n` 重跑原命令。若系统确实要求授权，
+再在运行查询的同一交互式终端执行 `auth prepare`。该命令也会先验证普通权限，
+可以直接访问时立即返回。密码只输入系统提示，不发送到聊天。
 
 探测本地 WeCom 数据库形态，不读取消息、联系人或成员行值：
 
@@ -223,21 +222,21 @@ wecom-local store-probe --json
 列出本地可见会话：
 
 ```bash
-sudo wecom-local conversations
-sudo wecom-local conversations --query "Example"
+wecom-local conversations
+wecom-local conversations --query "Example"
 ```
 
 读取一个会话：
 
 ```bash
-sudo wecom-local history "Example Group" -n 100 --format json
+wecom-local history "Example Group" -n 100 --format json
 ```
 
 列出群成员：
 
 ```bash
-sudo wecom-local members "Example Group" --format json
-sudo wecom-local members "Example Group" --full --format json
+wecom-local members "Example Group" --format json
+wecom-local members "Example Group" --full --format json
 ```
 
 默认成员输出只包含 basic **Member Detail Scope**，用于降低成员账号、邮箱、手机
@@ -247,19 +246,19 @@ sudo wecom-local members "Example Group" --full --format json
 搜索一个会话：
 
 ```bash
-sudo wecom-local search "roadmap" --in "Example Group" -n 20 --json
+wecom-local search "roadmap" --in "Example Group" -n 20 --json
 ```
 
 统计一个会话：
 
 ```bash
-sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
+wecom-local stats "Example Group" --max-scan 1000 --include-members --json
 ```
 
 写入一次性本地导出文件：
 
 ```bash
-sudo wecom-local export "Example Group" \
+wecom-local export "Example Group" \
   --format markdown \
   --output ./.local/wecom-local/example-conversation.md
 ```
@@ -273,7 +272,8 @@ sudo wecom-local export "Example Group" \
 推荐让 Agent 按这个顺序运行：
 
 ```text
-auth status -> auth prepare -> doctor -> conversations --query -> history -> members -> stats/search -> 分析
+conversations --query（已有 id 时跳过）-> history / members / stats / search -> 分析
+仅失败时：doctor / auth status --probe -> 按实际原因恢复
 ```
 
 示例指令：
@@ -390,9 +390,8 @@ Bridge，也不会默认写导出文件。
 
 - 只读取当前登录的 macOS WeCom Desktop 账号已经本地可见的数据。
 - Runtime Bridge 保持只读；不会发送消息、修改会话或写回企业微信。
-- 运行时命令通常需要 `sudo`，因为 macOS 进程附加权限由本机 PAM 管理。
-  `auth status` 可以无提示检查当前授权缓存，`auth prepare` 可以通过系统
-  `sudo`/PAM 交互预热授权。
+- 运行时命令先使用当前用户权限。`auth status --probe` 验证实际访问。
+  只有明确的权限拒绝才进入 sudo/PAM 恢复流程。
 - `sudo` 授权缓存可能按终端/TTY 隔离；Agent 应在同一个可交互授权作用域里运行
   查询命令，不应让用户把 macOS 密码粘贴进聊天。
 - CLI 不保存 macOS 密码、不创建 askpass 脚本、不安装特权 helper。

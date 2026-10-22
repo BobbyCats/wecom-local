@@ -185,23 +185,20 @@ slow part.
 ## Quick Start
 
 ```bash
-wecom-local auth status --json
-wecom-local auth prepare
-wecom-local doctor --json
-wecom-local store-probe --json
-sudo wecom-local conversations --query "Example"
-sudo wecom-local history "Example Group" -n 100 --format json
-sudo wecom-local members "Example Group" --format json
-sudo wecom-local members "Example Group" --full --format json
-sudo wecom-local stats "Example Group" --max-scan 1000 --include-members --json
+wecom-local conversations --query "Example"
+wecom-local history "Example Group" -n 100 --format json
+wecom-local members "Example Group" --format json
+wecom-local members "Example Group" --full --format json
+wecom-local stats "Example Group" --max-scan 1000 --include-members --json
 ```
 
-For Agent use, `sudo` authorization must happen in the same interactive
-terminal/TTY that will run the runtime query. Running `auth prepare` in a
-separate Terminal window may not authorize another Agent command session. An
-Agent should not ask the user to paste a macOS password into chat; if no
-interactive system `sudo` or Touch ID prompt is available, stop and ask the
-user to run the exact local command themselves.
+Run the target query as the current user first. Diagnose failures with
+`doctor --json` or `auth status --probe --json`; neither is a mandatory preflight.
+Without `--probe`, auth status checks sudo cache only. Retry the same query with
+`sudo -n` only after explicit permission denial. If system authorization remains
+necessary, use `auth prepare` in the same interactive terminal as the sudo query.
+Preparation first verifies direct access and skips sudo when it already works.
+Never ask the user to send a macOS password in chat.
 
 `members` defaults to the basic Member Detail Scope. Use `--full` only when the
 agent needs sensitive locally visible profile fields such as accounts, email,
@@ -216,7 +213,8 @@ instead of selecting the closest match.
 Recommended sequence:
 
 ```text
-auth status -> auth prepare -> doctor -> conversations --query -> history -> members -> stats/search -> analysis
+conversations --query (skip for known id) -> history / members / stats / search -> analysis
+on failure only: doctor / auth status --probe -> recover for the actual cause
 ```
 
 Agent integrations should call the binary and parse JSON. They should not
@@ -258,10 +256,10 @@ follow-up line for each item.
 
 - Reads only Local Visible Data for the signed-in macOS WeCom Desktop account.
 - Runtime Bridge stays read-only.
-- Runtime commands usually require `sudo` because process attach permission is
-  controlled by local macOS PAM.
-- `auth status` checks the current authorization cache without prompting.
-  `auth prepare` warms authorization through system `sudo`/PAM interaction.
+- Runtime commands first reuse current-user access. `auth status --probe` checks
+  the actual service; plain `auth status` checks only sudo cache state.
+- `auth prepare` skips sudo when direct access works. System sudo/PAM recovery
+  is used only after an explicit permission denial.
 - The `sudo` authorization cache may be scoped to a terminal or TTY. Agents
   should run queries in the same interactive authorization scope and must not
   ask users to paste macOS passwords into chat.

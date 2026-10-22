@@ -8,8 +8,8 @@ It is not an official WeCom API client.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Runtime authorization status | Implemented | `wecom-local auth status --json` checks sudo timestamp state without prompting |
-| Runtime authorization preparation | Implemented | `wecom-local auth prepare` warms authorization through system sudo/PAM without storing passwords |
+| Runtime authorization status | Implemented | `auth status --json` checks sudo cache; `auth status --probe --json` verifies direct service access |
+| Runtime authorization preparation | Implemented | `auth prepare` verifies direct access first; sudo/PAM is conditional on explicit permission denial |
 | Runtime readiness | Implemented | `wecom-local doctor` and `wecom-local doctor --json` |
 | Runtime Authorization docs | Implemented | `docs/macos-permissions.md` documents `sudo`, timestamp caching, and Touch ID |
 | Conversation Discovery | Implemented | `wecom-local conversations [--query <text>]` returns stable JSON |
@@ -87,8 +87,8 @@ Before merging or clean-landing a pull request:
   resolution must fail closed when a display-name query is ambiguous.
 - Ambiguous Conversation Reference errors should be recoverable without printing
   candidate conversation names or ids.
-- Runtime Authorization is delegated to system `sudo`/PAM. The CLI may check or
-  warm the sudo timestamp, but must not store macOS passwords, create askpass
+- Runtime queries first reuse current-user access; explicit permission denial
+  may require system sudo/PAM. The CLI must not store passwords, create askpass
   scripts, or install privileged helpers by default.
 - Agent Skills are instructions for calling `wecom-local`; they must not
   implement Runtime Bridge logic.
@@ -136,9 +136,8 @@ set -o pipefail
 1. Check readiness:
 
    ```bash
-   wecom-local auth status --json
-   wecom-local auth prepare
    wecom-local doctor --json
+   wecom-local auth status --probe --json
    ```
 
    Record: authorization status, check names, boolean status, and error
@@ -159,7 +158,7 @@ set -o pipefail
 3. Discover conversations:
 
    ```bash
-   sudo wecom-local conversations
+   wecom-local conversations
    ```
 
    Record: total count, matched count, and field names present in the first row.
@@ -167,7 +166,7 @@ set -o pipefail
 4. Filter conversations:
 
    ```bash
-   sudo wecom-local conversations --query "<redacted-query>"
+   wecom-local conversations --query "<redacted-query>"
    ```
 
    Record: whether filtering returns zero, one, or multiple candidates.
@@ -175,7 +174,7 @@ set -o pipefail
 5. Read by unique Conversation Reference:
 
    ```bash
-   sudo wecom-local history "<redacted-reference>" -n 3 --format json
+   wecom-local history "<redacted-reference>" -n 3 --format json
    ```
 
    Record: exported count, total message id count, and message field names. Do
@@ -184,7 +183,7 @@ set -o pipefail
 6. Verify ambiguous Conversation Reference failure:
 
    ```bash
-   sudo wecom-local history "<redacted-ambiguous-reference>" -n 3 --format json
+   wecom-local history "<redacted-ambiguous-reference>" -n 3 --format json
    ```
 
    Record: error type only, for example `ambiguous_conversation_reference`.
@@ -192,7 +191,7 @@ set -o pipefail
 7. Verify direct id path locally without publishing the id:
 
    ```bash
-   sudo wecom-local history "<redacted-conversation-id>" -n 1 --format json
+   wecom-local history "<redacted-conversation-id>" -n 1 --format json
    ```
 
    Record: pass or fail only.
@@ -200,7 +199,7 @@ set -o pipefail
 8. List members without publishing member values:
 
    ```bash
-   sudo wecom-local members "<redacted-reference>" --format json
+   wecom-local members "<redacted-reference>" --format json
    ```
 
    Record: member count, `member_detail_scope`, `sensitive_fields_included`,
@@ -212,7 +211,7 @@ set -o pipefail
 9. Summarize Member Participation:
 
    ```bash
-   sudo wecom-local stats "<redacted-reference>" --max-scan 1000 --include-members --json
+   wecom-local stats "<redacted-reference>" --max-scan 1000 --include-members --json
    ```
 
    Record: `member_participation` field names and numeric counts only. Do not

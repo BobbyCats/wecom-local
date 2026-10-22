@@ -7,6 +7,51 @@ pub struct WeComProcess {
     pub name: String,
 }
 
+#[derive(Debug)]
+pub struct RuntimePermissionDenied;
+
+impl std::fmt::Display for RuntimePermissionDenied {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "macOS denied access to the WeCom runtime. Retry the same query with sudo -n only if already authorized; otherwise use an interactive system authorization prompt.")
+    }
+}
+
+impl std::error::Error for RuntimePermissionDenied {}
+
+/// Verify the current process can reach the query service, without reading chat rows.
+#[cfg(target_os = "macos")]
+pub fn probe_access() -> Result<()> {
+    let target_output = wecom_container_tmp()?.join(unique_name("wecom-local-probe", "json"));
+    let out = objc_string_literal(&target_output.to_string_lossy());
+    let expr = format!(
+        r#"
+@import Foundation; @import ObjectiveC;
+id (*__whObj)(id, SEL) = (id (*)(id, SEL))objc_msgSend;
+BOOL (*__whResponds)(id, SEL, SEL) = (BOOL (*)(id, SEL, SEL))objc_msgSend;
+Class __whClass = objc_getClass("WEWServiceManager");
+SEL __whRespondsSel = sel_registerName("respondsToSelector:");
+SEL __whManagerSel = sel_registerName("defaultServiceManager");
+SEL __whServiceSel = sel_registerName("conversationService");
+id __whMgr = __whClass && __whResponds((id)__whClass, __whRespondsSel, __whManagerSel) ? __whObj((id)__whClass, __whManagerSel) : nil;
+id __whSvc = __whMgr && __whResponds(__whMgr, __whRespondsSel, __whServiceSel) ? __whObj(__whMgr, __whServiceSel) : nil;
+BOOL __whReady = __whSvc && __whResponds(__whSvc, __whRespondsSel, sel_registerName("getAllActiveAndUnblockedConversationIds"));
+NSError *__whError = nil;
+NSData *__whJson = [NSJSONSerialization dataWithJSONObject:@{{@"runtime_available": @(__whReady)}} options:0 error:&__whError];
+if (__whJson) {{ [__whJson writeToFile:{out} atomically:YES]; }}
+"#
+    );
+    let payload = run_lldb_expression(&expr, &target_output)?;
+    if payload.get("runtime_available").and_then(|v| v.as_bool()) != Some(true) {
+        bail!("WeCom query service is unavailable; check the app login and runtime compatibility");
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn probe_access() -> Result<()> {
+    bail!("WeCom runtime access currently supports macOS only")
+}
+
 #[cfg(target_os = "macos")]
 pub fn export_history(
     conversation_id: &str,
@@ -90,8 +135,11 @@ fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json:
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     if !output.status.success() {
+        if permission_denied(&stdout, &stderr) {
+            return Err(RuntimePermissionDenied.into());
+        }
         bail!(
-            "failed to read WeCom runtime. Try running this command with sudo.{}",
+            "failed to read WeCom runtime. Check app state and runtime compatibility; this failure alone does not establish a permission problem.{}",
             lldb_failure_detail(&stdout, &stderr)
         );
     }
@@ -113,6 +161,24 @@ fn run_lldb_expressions(expressions: &[(&str, &Path)]) -> Result<Vec<serde_json:
 
     drop(cleanup);
     Ok(values)
+}
+
+#[cfg(target_os = "macos")]
+fn permission_denied(stdout: &str, stderr: &str) -> bool {
+    // Inspect debugger diagnostics only, never expression source or returned data.
+    stdout.lines().chain(stderr.lines()).any(|line| {
+        let line = line.trim().to_ascii_lowercase();
+        (line.starts_with("error: attach") || line.starts_with("debugserver-"))
+            && [
+                "not allowed to attach",
+                "operation not permitted",
+                "permission denied",
+                "not authorized",
+                "insufficient privileges",
+            ]
+            .iter()
+            .any(|needle| line.contains(needle))
+    })
 }
 
 #[cfg(target_os = "macos")]
@@ -598,6 +664,35 @@ if (__wmJson) {{ [__wmJson writeToFile:__wmOutputPath atomically:YES]; }}
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn recognizes_permission_denial_without_exposing_diagnostics() {
+        assert!(permission_denied(
+            "error: attach failed: Not allowed to attach to process.",
+            ""
+        ));
+        assert!(permission_denied(
+            "",
+            "error: attach failed: Operation not permitted"
+        ));
+        assert!(!permission_denied(
+            "error: use of undeclared identifier",
+            ""
+        ));
+        assert!(!permission_denied(
+            "error: attach failed: No such process",
+            ""
+        ));
+        assert!(!permission_denied(
+            "(lldb) expr -O -- @\"permission denied\"",
+            ""
+        ));
+        assert!(!permission_denied("{\"text\": \"permission denied\"}", ""));
+        assert!(!permission_denied(
+            "error: permission denied opening a script",
+            ""
+        ));
+    }
 
     #[test]
     fn redacts_lldb_expression_and_conversation_ids_from_debug_output() {

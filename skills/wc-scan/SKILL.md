@@ -13,10 +13,12 @@ full-account export.
 
 ## Authorization UX
 
-If `sudo` authorization is needed, use an interactive system prompt in the same
-terminal/TTY that will run the query. Do not ask the user to paste their macOS
-password into chat. If no interactive prompt is available, stop and ask the user
-to run the exact local command themselves.
+Follow `wc-local`: run the requested read-only query without sudo first. The
+user's task authorizes the needed reads; do not ask again for each command.
+Diagnose only after failure. `auth status` without `--probe` checks sudo cache,
+not actual query access. Only explicit permission denial allows one `sudo -n`
+retry of the same command. Use system authorization only if it remains required;
+never request a password in chat. Keep failed-run notes private.
 
 ## Scope First
 
@@ -33,29 +35,21 @@ conversation separately.
 
 ## Workflow
 
-1. Check readiness when needed:
+1. Discover conversations:
 
    ```bash
-   wecom-local auth status --json
-   wecom-local auth prepare
-   wecom-local doctor --json
+   wecom-local conversations
+   wecom-local conversations --query "Example"
    ```
 
-2. Discover conversations:
+2. For each selected conversation, run bounded reads:
 
    ```bash
-   sudo wecom-local conversations
-   sudo wecom-local conversations --query "Example"
+   wecom-local history "Example Group" -n 200 --format json
+   wecom-local stats "Example Group" --max-scan 200 --include-members --json
    ```
 
-3. For each selected conversation, run bounded reads:
-
-   ```bash
-   sudo wecom-local history "Example Group" -n 200 --format json
-   sudo wecom-local stats "Example Group" --max-scan 200 --include-members --json
-   ```
-
-4. Output a table or compact sections:
+3. Output a table or compact sections:
 
    - conversation label or redacted local label;
    - scanned message count;

@@ -9,61 +9,46 @@ This document covers `wecom-local` CLI JSON only. Analysis Skills such as
 agent-written summaries or drafts on top of CLI JSON; their prose output is not
 a stable CLI schema.
 
-`wecom-local auth status --json` returns the current Runtime Authorization
-state without prompting for a password.
+`wecom-local auth status --json` checks sudo cache state only. Its existing
+`status` values remain compatible; `runtime_access: not_checked` explicitly
+means the query runtime has not been tested. A missing sudo timestamp does not
+establish that plain queries need authorization.
+
+`wecom-local auth status --probe --json` checks the current query service without
+reading chat rows. Example with direct access and no cached sudo timestamp:
 
 ```json
 {
   "platform": "macos",
-  "status": "needs_authorization",
-  "authorization_method": "sudo_prompt_required",
+  "status": "ready",
+  "authorization_method": "current_user_runtime",
   "sudo_timestamp_cached": false,
   "running_as_root": false,
   "password_stored": false,
-  "can_prepare": true,
+  "can_prepare": false,
   "prepare_command": "wecom-local auth prepare",
-  "detail": "authorize in the same interactive sudo timestamp scope that will run runtime queries; do not send passwords to an Agent"
+  "detail": "current process reached the WeCom query service without reading chat rows; this verifies current access, not a permanent authorization grant",
+  "runtime_access": "verified"
 }
 ```
 
-`wecom-local auth prepare --json` prompts through system `sudo`/PAM when needed
-and returns the status before and after preparation. The CLI never receives or
-stores the macOS password. Sudo timestamps may be scoped to a terminal or TTY,
-so an authorization prepared in one terminal may not be reusable by an Agent
-running commands in another terminal.
+`runtime_access` is `not_checked`, `verified`, `denied`, or `unavailable`.
+An explicit permission denial yields `needs_authorization` for a non-root
+process. A runtime failure, or a denial even as root, yields `needs_attention`.
+These are diagnostic reports and exit 0 when successfully produced; inspect
+fields rather than using the exit code as proof of query access.
 
-```json
-{
-  "prepared": true,
-  "keepalive_minutes": 0,
-  "keepalive_refresh_count": 0,
-  "password_stored": false,
-  "status_before": {
-    "platform": "macos",
-    "status": "needs_authorization",
-    "authorization_method": "sudo_prompt_required",
-    "sudo_timestamp_cached": false,
-    "running_as_root": false,
-    "password_stored": false,
-    "can_prepare": true,
-    "prepare_command": "wecom-local auth prepare",
-    "detail": "authorize in the same interactive sudo timestamp scope that will run runtime queries; do not send passwords to an Agent"
-  },
-  "status_after": {
-    "platform": "macos",
-    "status": "ready",
-    "authorization_method": "sudo_timestamp",
-    "sudo_timestamp_cached": true,
-    "running_as_root": false,
-    "password_stored": false,
-    "can_prepare": true,
-    "prepare_command": "wecom-local auth prepare",
-    "detail": "sudo timestamp is cached for this sudo timestamp scope"
-  }
-}
-```
+`auth prepare --json` returns `prepared`, `keepalive_minutes`,
+`keepalive_refresh_count`, `password_stored`, `status_before`, and `status_after`.
+The status objects have the schema above. Direct access returns `prepared: true`
+with both statuses verified and both keepalive values 0, even if keepalive was
+requested. It does not invoke interactive sudo. A successful sudo preparation
+reports cached authorization with `runtime_access: not_checked`; it does not
+claim the sudo query has succeeded. Non-permission runtime failures return a
+nonzero error without requesting a password. Interactive sudo/PAM is used only
+when permission is denied and no usable timestamp exists.
 
-`wecom-local doctor --json` returns local readiness checks.
+`wecom-local doctor --json` returns environment prerequisite checks, not an actual runtime-access verification.
 
 ```json
 {

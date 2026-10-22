@@ -45,3 +45,14 @@ install privileged helpers in the CLI.
   authorization setup outside this project.
 - A native macOS app or signed privileged helper remains a possible future
   distribution layer, not part of the first public CLI.
+
+## Query-first refinement
+
+Runtime access and the sudo timestamp are separate facts. Queries first reuse
+current-user access. A missing timestamp must not prevent an ordinary query.
+`auth status --probe` verifies the current query service without chat rows;
+plain status retains its sudo-cache contract and marks runtime access unchecked.
+`auth prepare` probes first and returns immediately when direct access works.
+Only explicit debugger permission denial enters the sudo/PAM recovery path.
+Runtime-interface or application failures must not trigger password requests.
+This refinement retains the no-password-storage and no-privileged-helper rules.
