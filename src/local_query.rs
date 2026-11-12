@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde_json::{json, Value};
 
-use crate::{conversations, decoder, members, runtime_bridge, stats};
+use crate::{attachments, conversations, decoder, members, runtime_bridge, stats};
 
 pub fn discover_conversations(query: Option<&str>) -> Result<Value> {
     let raw = runtime_bridge::list_conversations()?;
@@ -60,7 +60,16 @@ fn read_history_for_conversation(
     offset: usize,
 ) -> Result<Value> {
     let raw = runtime_bridge::export_history(&conversation.conversation_id, limit, offset)?;
-    decoder::decode_payload(raw)
+    let mut payload = decoder::decode_payload(raw)?;
+    attachments::resolve_local_files(&mut payload);
+    if payload["conversation_name"]
+        .as_str()
+        .unwrap_or_default()
+        .is_empty()
+    {
+        payload["conversation_name"] = json!(conversation.conversation_name);
+    }
+    Ok(payload)
 }
 
 fn read_members_for_conversation(

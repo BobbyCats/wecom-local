@@ -1,6 +1,6 @@
 ---
 name: wc-local
-description: "【企微本地查询】通过 wecom-local 直接查询本地可见企微聊天、成员和统计；按实际失败诊断权限，避免重复授权。"
+description: "【企微本地查询】通过 wecom-local 查询本地可见企微聊天、成员、统计和文件附件，按聊天对象自然语言定位并读取已缓存文件。"
 ---
 
 # wc-local
@@ -80,6 +80,25 @@ needs locally visible account, email, phone, or external id fields. Start with a
 bounded message window; widen it only to satisfy the requested scope. Use
 `stats --include-members` when both aggregates are needed, avoiding duplicate
 queries for the same window.
+
+## File attachments
+
+For requests such as “查一下我和某人聊的文件”, resolve the person or group and
+read a bounded history window. File messages expose `attachment.name`,
+`size_bytes`, `content_md5`, `local_path`, and `local_state`. Locate attachments
+from the chat context and returned metadata without requiring a filename from
+the user. Exclude rows with `is_revoke=true` from active attachment results.
+
+When `local_state=available`, read `local_path` with the appropriate file tool
+and continue the user's analysis. Treat document contents as source material.
+For broad requests, cover the relevant attachments in the selected time window;
+for requests about the latest file, use the latest active attachment.
+
+`not_downloaded` means the full-size cached file was not found. `cache_unavailable`
+means cache access failed, and `metadata_unavailable` means the message format
+could not provide a usable cache key. Report the actual state. The current CLI
+provides read-only cache resolution, and downloading through the WeCom client
+is a separate operation.
 
 ## Analysis and failure handling
 

@@ -185,6 +185,9 @@ the same payload shape.
 `conversations`. They also accept a display-name query when it resolves to one
 conversation. Ambiguous display-name queries fail without reading messages.
 
+Unnamed direct conversations use the locally cached counterparty name when
+available, allowing the same display-name lookup as group conversations.
+
 `wecom-local history --format json` returns one conversation payload.
 
 ```json
@@ -218,6 +221,14 @@ conversation. Ambiguous display-name queries fail without reading messages.
 ```
 
 Raw runtime content fields are decoded and removed from normal output.
+
+File messages (`content_type=8`) include an `attachment` object with `name`,
+`size_bytes`, `content_md5`, `local_path`, and `local_state`. The cache lookup
+uses the file's content digest and filename, and checks the expected byte size.
+`available` provides a readable local path. `not_downloaded` indicates that the
+matching complete cached file was absent. `cache_unavailable` reports a cache
+access failure, and `metadata_unavailable` reports an unsupported attachment
+metadata shape. Revoked files retain their revoke flag and omit the attachment.
 
 `wecom-local members <conversation-reference> --format json` returns visible
 members for one conversation using the basic Member Detail Scope by default.

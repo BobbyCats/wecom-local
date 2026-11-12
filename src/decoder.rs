@@ -54,13 +54,36 @@ fn decode_message_row(row: &mut Value) -> Result<()> {
         .collect();
 
     let best = cleaned.first().cloned().unwrap_or_default();
-    let display = display_text_for(row, &best);
-    let text = if looks_encoded_payload(&best) || is_url(&best) {
+    let mut display = display_text_for(row, &best);
+    let mut text = if looks_encoded_payload(&best) || is_url(&best) {
         String::new()
     } else {
         best
     };
     let sender_display = sender_display(row);
+
+    if row.get("content_type").and_then(Value::as_i64) == Some(8) {
+        text.clear();
+        display = "[file]".to_string();
+        if row.get("is_revoke").and_then(Value::as_bool) == Some(true) {
+            display = "[revoked file]".to_string();
+        } else {
+            let raw_content = BASE64
+                .decode(
+                    row.get("raw_content_base64")
+                        .and_then(Value::as_str)
+                        .unwrap_or(""),
+                )
+                .unwrap_or_default();
+            if let Some(attachment) = decode_file_attachment(&raw_content) {
+                text = attachment["name"].as_str().unwrap_or_default().to_string();
+                display = format!("[file] {}", text);
+                row["attachment"] = attachment;
+            } else {
+                row["attachment"] = json!({"local_state": "metadata_unavailable"});
+            }
+        }
+    }
 
     if let Some(obj) = row.as_object_mut() {
         obj.insert("text".to_string(), json!(text));
@@ -73,6 +96,58 @@ fn decode_message_row(row: &mut Value) -> Result<()> {
         obj.remove("raw_content_base64");
     }
     Ok(())
+}
+
+fn decode_file_attachment(data: &[u8]) -> Option<Value> {
+    let mut pos = 0;
+    let mut name = None;
+    let mut size = None;
+    let mut md5 = None;
+    while pos < data.len() {
+        let (tag, next) = read_varint(data, pos).ok()?;
+        pos = next;
+        match tag & 7 {
+            0 => {
+                let (value, next) = read_varint(data, pos).ok()?;
+                pos = next;
+                if tag >> 3 == 4 {
+                    size = Some(value);
+                }
+            }
+            2 => {
+                let (length, next) = read_varint(data, pos).ok()?;
+                let end = next.checked_add(usize::try_from(length).ok()?)?;
+                let value = data.get(next..end)?;
+                pos = end;
+                match tag >> 3 {
+                    2 => name = std::str::from_utf8(value).ok().map(str::to_string),
+                    10 => md5 = std::str::from_utf8(value).ok().map(str::to_ascii_lowercase),
+                    _ => {}
+                }
+            }
+            1 => pos = pos.checked_add(8)?,
+            5 => pos = pos.checked_add(4)?,
+            _ => return None,
+        }
+        if pos > data.len() {
+            return None;
+        }
+    }
+    let name = name.filter(|value| {
+        !value.is_empty()
+            && value != "."
+            && value != ".."
+            && !value.chars().any(|ch| matches!(ch, '/' | '\\' | '\0'))
+    })?;
+    let md5 =
+        md5.filter(|value| value.len() == 32 && value.bytes().all(|ch| ch.is_ascii_hexdigit()));
+    Some(json!({
+        "name": name,
+        "size_bytes": size,
+        "content_md5": md5,
+        "local_path": null,
+        "local_state": "unresolved"
+    }))
 }
 
 #[derive(Debug)]
@@ -275,6 +350,57 @@ fn format_timestamp(ts: f64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn synthetic_file_payload(name: &str) -> Vec<u8> {
+        let mut data = vec![0x0a, 22];
+        data.extend_from_slice(b"private-download-token");
+        data.extend_from_slice(&[0x12, name.len() as u8]);
+        data.extend_from_slice(name.as_bytes());
+        data.extend_from_slice(&[0x20, 7, 0x52, 32]);
+        data.extend_from_slice(b"0123456789abcdef0123456789abcdef");
+        data
+    }
+
+    #[test]
+    fn decodes_file_metadata_and_discards_download_credentials() {
+        let mut row = json!({
+            "content_type": 8,
+            "raw_content_base64": BASE64.encode(synthetic_file_payload("example.md"))
+        });
+        decode_message_row(&mut row).unwrap();
+        assert_eq!(row["text"], "example.md");
+        assert_eq!(row["display_text"], "[file] example.md");
+        assert_eq!(row["attachment"]["size_bytes"], 7);
+        assert_eq!(
+            row["attachment"]["content_md5"],
+            "0123456789abcdef0123456789abcdef"
+        );
+        assert!(!row.to_string().contains("private-download-token"));
+        assert!(row.get("raw_content_base64").is_none());
+    }
+
+    #[test]
+    fn revoked_files_have_no_attachment_or_filename() {
+        let mut row = json!({
+            "content_type": 8,
+            "is_revoke": true,
+            "raw_content_base64": BASE64.encode(synthetic_file_payload("example.md"))
+        });
+        decode_message_row(&mut row).unwrap();
+        assert_eq!(row["display_text"], "[revoked file]");
+        assert!(row.get("attachment").is_none());
+        assert!(!row.to_string().contains("example.md"));
+    }
+
+    #[test]
+    fn rejects_unsafe_names_and_truncated_file_metadata() {
+        for name in ["../example.md", "folder\\example.md", ".", "..", ""] {
+            assert!(decode_file_attachment(&synthetic_file_payload(name)).is_none());
+        }
+        let mut truncated = synthetic_file_payload("example.md");
+        truncated.pop();
+        assert!(decode_file_attachment(&truncated).is_none());
+    }
 
     #[test]
     fn decodes_synthetic_text_content() {
