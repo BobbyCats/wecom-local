@@ -34,7 +34,10 @@ SEL __whManagerSel = sel_registerName("defaultServiceManager");
 SEL __whServiceSel = sel_registerName("conversationService");
 id __whMgr = __whClass && __whResponds((id)__whClass, __whRespondsSel, __whManagerSel) ? __whObj((id)__whClass, __whManagerSel) : nil;
 id __whSvc = __whMgr && __whResponds(__whMgr, __whRespondsSel, __whServiceSel) ? __whObj(__whMgr, __whServiceSel) : nil;
-BOOL __whReady = __whSvc && __whResponds(__whSvc, __whRespondsSel, sel_registerName("getAllActiveAndUnblockedConversationIds"));
+BOOL __whReady = __whSvc
+    && __whResponds(__whSvc, __whRespondsSel, sel_registerName("conversationWithId:"))
+    && (__whResponds(__whSvc, __whRespondsSel, sel_registerName("fetchAllConversationsWithFilterType:"))
+        || __whResponds(__whSvc, __whRespondsSel, sel_registerName("getAllActiveAndUnblockedConversationIds")));
 NSError *__whError = nil;
 NSData *__whJson = [NSJSONSerialization dataWithJSONObject:@{{@"runtime_available": @(__whReady)}} options:0 error:&__whError];
 if (__whJson) {{ [__whJson writeToFile:{out} atomically:YES]; }}
@@ -385,6 +388,7 @@ fn build_conversation_list_expression(output_path: &Path) -> String {
 @import Foundation; @import ObjectiveC;
 id (*__whObj)(id, SEL) = (id (*)(id, SEL))objc_msgSend;
 id (*__whObj1)(id, SEL, id) = (id (*)(id, SEL, id))objc_msgSend;
+id (*__whObjUllArg)(id, SEL, unsigned long long) = (id (*)(id, SEL, unsigned long long))objc_msgSend;
 unsigned long long (*__whUll)(id, SEL) = (unsigned long long (*)(id, SEL))objc_msgSend;
 long long (*__whLl)(id, SEL) = (long long (*)(id, SEL))objc_msgSend;
 double (*__whDbl)(id, SEL) = (double (*)(id, SEL))objc_msgSend;
@@ -396,15 +400,31 @@ id __whConversationSvc = [__whMgr conversationService];
 NSMutableDictionary *__whPayload = [NSMutableDictionary dictionary];
 NSMutableArray *__whRows = [NSMutableArray array];
 [__whPayload setObject:__whRows forKey:@"conversations"];
-SEL __whListSel = sel_registerName("getAllActiveAndUnblockedConversationIds");
+SEL __whFetchSel = sel_registerName("fetchAllConversationsWithFilterType:");
+SEL __whLegacyListSel = sel_registerName("getAllActiveAndUnblockedConversationIds");
 SEL __whConvSel = sel_registerName("conversationWithId:");
 SEL __whRespondsSel = sel_registerName("respondsToSelector:");
-if (!__whConversationSvc || !__whResponds(__whConversationSvc, __whRespondsSel, __whListSel) || !__whResponds(__whConversationSvc, __whRespondsSel, __whConvSel)) {{
+BOOL __whCanFetch = __whConversationSvc && __whResponds(__whConversationSvc, __whRespondsSel, __whFetchSel);
+BOOL __whCanUseLegacyList = __whConversationSvc && __whResponds(__whConversationSvc, __whRespondsSel, __whLegacyListSel);
+if ((!__whCanFetch && !__whCanUseLegacyList) || !__whResponds(__whConversationSvc, __whRespondsSel, __whConvSel)) {{
     [__whPayload setObject:@"conversation list selector unavailable" forKey:@"error"];
     [__whPayload setObject:@0 forKey:@"total_count"];
     [__whPayload setObject:@0 forKey:@"matched_count"];
 }} else {{
-    NSArray *__whIds = __whObj(__whConversationSvc, __whListSel) ?: @[];
+    NSMutableArray *__whIds = [NSMutableArray array];
+    if (__whCanFetch) {{
+        /* The legacy unblocked list excludes conversations with notifications muted. */
+        NSArray *__whConversations = __whObjUllArg(__whConversationSvc, __whFetchSel, 0) ?: @[];
+        SEL __whIdSel = sel_registerName("conversationId");
+        for (id __whConversation in __whConversations) {{
+            if (!__whResponds(__whConversation, __whRespondsSel, __whIdSel)) {{ continue; }}
+            NSString *__whId = __whObj(__whConversation, __whIdSel);
+            if ([__whId length] > 0) {{ [__whIds addObject:__whId]; }}
+        }}
+    }}
+    if ([__whIds count] == 0 && __whCanUseLegacyList) {{
+        [__whIds addObjectsFromArray:(__whObj(__whConversationSvc, __whLegacyListSel) ?: @[])];
+    }}
     NSDateFormatter *__whDateFormatter = [[NSDateFormatter alloc] init];
     [__whDateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     for (id __whConversationIdValue in __whIds) {{
@@ -711,6 +731,18 @@ mod tests {
         assert_eq!(script.matches("expr -l objc++ -O --").count(), 2);
         assert_eq!(script.matches("process detach").count(), 1);
         assert!(script.ends_with("quit\n"));
+    }
+
+    #[test]
+    fn discovers_muted_conversations_with_a_legacy_fallback() {
+        let output_path = std::env::temp_dir().join("synthetic-conversations.json");
+        let expression = build_conversation_list_expression(&output_path);
+
+        assert!(expression.contains("fetchAllConversationsWithFilterType:"));
+        assert!(expression.contains("__whFetchSel, 0"));
+        assert!(expression.contains("getAllActiveAndUnblockedConversationIds"));
+        assert!(expression.contains("[__whIds count] == 0 && __whCanUseLegacyList"));
+        assert!(expression.contains("sel_registerName(\"conversationId\")"));
     }
 
     #[test]

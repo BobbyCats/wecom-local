@@ -181,6 +181,12 @@ decrypted files.
 `--query <text>` filters by `conversation_id` or `conversation_name` and keeps
 the same payload shape.
 
+Discovery prefers the full conversation list, including locally visible
+conversations with notifications muted (`is_blocked: true`). On WeCom versions
+where that API is unavailable or returns no usable conversation ids, discovery
+falls back to the legacy active/unblocked list. That fallback can omit muted
+conversations. A known conversation id can still be used directly for queries.
+
 `history` and `export` accept the same conversation ids returned by
 `conversations`. They also accept a display-name query when it resolves to one
 conversation. Ambiguous display-name queries fail without reading messages.
