@@ -412,6 +412,30 @@ if (!__whConversationSvc || !__whResponds(__whConversationSvc, __whRespondsSel, 
         id __whConversation = __whObj1(__whConversationSvc, __whConvSel, __whConversationId);
         if (!__whConversation) {{ continue; }}
         NSString *__whName = __whObj(__whConversation, sel_registerName("name")) ?: @"";
+        if ([__whName length] == 0 && [__whConversationId hasPrefix:@"S:"]) {{
+            id __whUserSvc = __whResponds(__whMgr, __whRespondsSel, sel_registerName("userService")) ? __whObj(__whMgr, sel_registerName("userService")) : nil;
+            id __whLoginSvc = __whResponds(__whMgr, __whRespondsSel, sel_registerName("loginService")) ? __whObj(__whMgr, sel_registerName("loginService")) : nil;
+            SEL __whLoginIdSel = sel_registerName("LoginUserId");
+            long long __whLoginId = __whResponds(__whLoginSvc, __whRespondsSel, __whLoginIdSel) ? __whLl(__whLoginSvc, __whLoginIdSel) : 0;
+            SEL __whFetchUser = sel_registerName("fetchLocalUser:");
+            if (__whUserSvc && __whResponds(__whUserSvc, __whRespondsSel, __whFetchUser)) {{
+                NSMutableArray *__whNames = [NSMutableArray array];
+                NSArray *__whUserIds = [[__whConversationId substringFromIndex:2] componentsSeparatedByString:@"_"];
+                for (NSString *__whUserIdText in __whUserIds) {{
+                    long long __whUserId = [__whUserIdText longLongValue];
+                    if (__whUserId == 0 || __whUserId == __whLoginId) {{ continue; }}
+                    id __whUser = ((id (*)(id, SEL, long long))objc_msgSend)(__whUserSvc, __whFetchUser, __whUserId);
+                    SEL __whRealNameSel = sel_registerName("realName");
+                    SEL __whNameSel = sel_registerName("name");
+                    NSString *__whUserName = __whResponds(__whUser, __whRespondsSel, __whRealNameSel) ? __whObj(__whUser, __whRealNameSel) : nil;
+                    if (![__whUserName length] && __whResponds(__whUser, __whRespondsSel, __whNameSel)) {{
+                        __whUserName = __whObj(__whUser, __whNameSel);
+                    }}
+                    if ([__whUserName length]) {{ [__whNames addObject:__whUserName]; }}
+                }}
+                __whName = [__whNames componentsJoinedByString:@", "];
+            }}
+        }}
         NSDate *__whModifyTime = __whObj(__whConversation, sel_registerName("modifyTime"));
         NSDate *__whCreateTime = __whObj(__whConversation, sel_registerName("createTime"));
         NSString *__whModifyTimeText = __whModifyTime ? [__whDateFormatter stringFromDate:__whModifyTime] : @"";
