@@ -270,6 +270,25 @@ mod tests {
     }
 
     #[test]
+    fn resolves_a_muted_conversation_by_name() {
+        let raw = json!({
+            "total_count": 1,
+            "conversations": [{
+                "conversation_id": "R:0000000001",
+                "conversation_name": "Synthetic Muted Team",
+                "is_blocked": true
+            }]
+        });
+
+        let payload = normalize_payload(raw, Some("Muted Team")).unwrap();
+        let resolved = resolve_one(&payload, "Synthetic Muted Team").unwrap();
+
+        assert_eq!(payload["matched_count"], 1);
+        assert_eq!(payload["conversations"][0]["is_blocked"], true);
+        assert_eq!(resolved.conversation_id, "R:0000000001");
+    }
+
+    #[test]
     fn resolves_single_fuzzy_conversation_reference() {
         let payload = json!({
             "conversations": [
